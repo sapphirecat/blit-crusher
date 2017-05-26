@@ -8,3 +8,5 @@
 AssemblyInfo.fs text eol=crlf
 
 *.fsproj    text eol=lf
+
+*.md        text eol=native
