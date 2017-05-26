@@ -1,0 +1,10 @@
+# this basically documents how monodevelop made everything on Linux
+
+*.config    text eol=crlf
+*.sln       text eol=crlf
+*.userprefs text eol=crlf
+
+*.fs        text eol=lf
+AssemblyInfo.fs text eol=crlf
+
+*.fsproj    text eol=lf
