@@ -30,6 +30,11 @@ let rgb332 p =
 let rgba2222 p =
     {R = bit2 p.R; G = bit2 p.G; B = bit2 p.B; A = bit2 p.A}
 
+let hsv422 =
+    asHSV (levels 15) bit2 bit2
+let hsva5443 =
+    asHSVA (levels 30) bit4 bit4 bit3
+
 // take an input filename and add a tag to it before the last dot
 // e.g. `tagname input "red"` for use with an operator that makes it red
 // also forces png; e.g. file.jpg -> file.tag.png
@@ -38,7 +43,9 @@ let tagname (basename:string) tag =
     basename.Substring(0, splice) + "." + tag + ".png"
 
 let transformations = 
-    [|  "rgba4444", rgba4444;
+    [|  "hsv422", hsv422;
+        "hsva5443", hsva5443;
+        "rgba4444", rgba4444;
         "rgba2222", rgba2222;
         "rgb332", rgb332 |]
 

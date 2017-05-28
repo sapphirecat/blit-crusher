@@ -30,7 +30,7 @@ let flevels lo hi count channel :Channel =
     let ch = (channel - lo)/range * ct |> round
     (ch/ct) * range + lo
 // flevels on [0,1]
-let levels count channel :Channel =
+let levels count (channel:Channel) :Channel =
     let ct = float32 count
     let c = channel * ct |> round
     c/ct
@@ -64,13 +64,12 @@ let fromAHSV a (h, s, v) =
     let q = v * (1.0f - s * f)
     let t = v * (1.0f - s * (1.0f - f))
     match int i with
-    | 0 -> Some({R = v; G = t; B = p; A = a })
-    | 1 -> Some({R = q; G = v; B = p; A = a })
-    | 2 -> Some({R = p; G = v; B = t; A = a })
-    | 3 -> Some({R = p; G = q; B = v; A = a })
-    | 4 -> Some({R = t; G = p; B = v; A = a })
-    | 5 -> Some({R = v; G = p; B = q; A = a })
-    | _ -> None
+    | 0 -> {R = v; G = t; B = p; A = a }
+    | 1 -> {R = q; G = v; B = p; A = a }
+    | 2 -> {R = p; G = v; B = t; A = a }
+    | 3 -> {R = p; G = q; B = v; A = a }
+    | 4 -> {R = t; G = p; B = v; A = a }
+    | _ -> {R = v; G = p; B = q; A = a } // FIXME: Pythonic `else`
 let fromHSV = fromAHSV 1.0f
 
 
