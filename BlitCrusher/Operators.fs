@@ -101,3 +101,8 @@ let foreachPixel operator source =
         putPixels dest pixels'
     finally
         freeData source meta
+
+let transformFile operator input output =
+    let source = loadFile input
+    let dest = foreachPixel operator source
+    saveImageAs dest output

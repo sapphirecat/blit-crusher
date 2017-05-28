@@ -14,12 +14,21 @@ let bluer p =
     {B = averagef32 p.B 1.0f; G = p.G; R = p.R; A = p.A}
 let transer p =
     {A = averagef32 p.A 0.2f; G = p.G; B = p.B; R = p.R}
+   
+// basic bit-crushing primitives
+let bit2 = bits 2
+let bit3 = bits 3
+let bit4 = bits 4
+let bit5 = bits 5
+let bit6 = bits 6
 
-// should this be part of SysImage.fs?
-let transform operator input output =
-    let source = loadFile input
-    let dest = foreachPixel operator source
-    saveImageAs dest output
+// RGB bit-crushing transformation functions
+let rgba4444 p =
+    {R = bit4 p.R; G = bit4 p.G; B = bit4 p.B; A = bit4 p.A}
+let rgb332 p =
+    {R = bit3 p.R; G = bit3 p.G; B = bit2 p.B; A = 1.0f}
+let rgba2222 p =
+    {R = bit2 p.R; G = bit2 p.G; B = bit2 p.B; A = bit2 p.A}
 
 // take an input filename and add a tag to it before the last dot
 // e.g. `tagname input "red"` for use with an operator that makes it red
@@ -28,13 +37,21 @@ let tagname (basename:string) tag =
     let splice = basename.LastIndexOf('.')
     basename.Substring(0, splice) + "." + tag + ".png"
 
+let transformations = 
+    [|  "rgba4444", rgba4444;
+        "rgba2222", rgba2222;
+        "rgb332", rgb332 |]
+
+let transformOne input tag operator =
+    tagname input tag |> transformFile operator input
+let transformAll input =
+    [|for tag,operator in transformations do
+        yield transformOne input tag operator |]
+
 [<EntryPoint>]
 let main argv = 
-    let input = "file.png"
-    tagname input "red" |> transform redder input |> ignore
-    tagname input "grn" |> transform greener input |> ignore
-    tagname input "blu" |> transform bluer input |> ignore
-    tagname input "lfa" |> transform transer input |> ignore
-
-    //printfn "%A" argv
+    let input = match argv.Length with
+                | 0 -> [|"file.png"|]
+                | _ -> argv
+    Array.iter (fun x -> transformAll x |> ignore) input
     0 // return an integer exit code
