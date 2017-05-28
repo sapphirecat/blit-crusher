@@ -1,12 +1,12 @@
 # this basically documents how monodevelop made everything on Linux
 
-*.config    text eol=crlf
+*.config    text eol=lf
+*.fsproj    text eol=lf
 *.sln       text eol=crlf
 *.userprefs text eol=crlf
 
 *.fs        text eol=lf
-AssemblyInfo.fs text eol=crlf
-
-*.fsproj    text eol=lf
-
 *.md        text eol=native
+
+.gitattributes text eol=native
+.gitignore     text eol=native
