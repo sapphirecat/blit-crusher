@@ -31,7 +31,7 @@ let flevels lo hi count channel :Channel =
     (ch/ct) * range + lo
 // flevels on [0,1]
 let levels count (channel:Channel) :Channel =
-    let ct = float32 count
+    let ct = count - 1 |> float32
     let c = channel * ct |> round
     c/ct
 
