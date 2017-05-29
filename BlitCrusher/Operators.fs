@@ -39,37 +39,40 @@ let bits depth channel =
     let _lv = 2.0f ** float32 depth |> round |> int
     levels _lv channel
 
-let max3 a b c = max a b |> max c
-let min3 a b c = min a b |> min c
 let toHSV px =
     // find the min/max channel values
-    let maxC = max3 px.R px.G px.B
-    let minC = min3 px.R px.G px.B
+    let maxC = Array.reduce max [| px.R; px.G; px.B |]
+    let minC = Array.reduce min [| px.R; px.G; px.B |]
     // range between max/min
     let delta = maxC - minC
 
     // calculate a basic hue based on delta and which channel is max
-    let h = if maxC = minC then 0.0f
-            elif maxC = px.R then (px.G - px.B)
-            elif maxC = px.G then 2.0f + (px.B - px.R)
+    let h = if maxC <= minC then 0.0f
+            elif maxC <= px.R then (px.G - px.B)
+            elif maxC <= px.G then 2.0f + (px.B - px.R)
             else 4.0f + (px.R - px.G)
-    // calculate the final hue and return the HSV tuple
+    // calculate final hue
     let h' = h*60.0f |> hueclamp
-    h',delta/maxC,maxC
-let fromAHSV a (h, s, v) =
+    // safely calculate saturation
+    let s = if maxC > 0.0f then delta/maxC else 0.0f
+    h',s,maxC
+let fromAHSV a (h:Channel, s:Channel, v:Channel) =
     let h' = h / 60.0f
     let i = h' |> floor
     let f = h - i
     let p = v * (1.0f - s)
     let q = v * (1.0f - s * f)
     let t = v * (1.0f - s * (1.0f - f))
-    match int i with
-    | 0 -> {R = v; G = t; B = p; A = a }
-    | 1 -> {R = q; G = v; B = p; A = a }
-    | 2 -> {R = p; G = v; B = t; A = a }
-    | 3 -> {R = p; G = q; B = v; A = a }
-    | 4 -> {R = t; G = p; B = v; A = a }
-    | _ -> {R = v; G = p; B = q; A = a } // FIXME: Pythonic `else`
+    // FIXME: Pythonic/imperative approach
+    let red,green,blue =
+        if s <= 0.0f then v,v,v
+        elif i < 1.0f then v,t,p
+        elif i < 2.0f then q,v,p
+        elif i < 3.0f then p,v,t
+        elif i < 4.0f then p,q,v
+        elif i < 5.0f then t,p,v
+        else v,p,q
+    {R = red; G = green; B = blue; A = a }
 let fromHSV = fromAHSV 1.0f
 
 
