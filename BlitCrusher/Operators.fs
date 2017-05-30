@@ -25,7 +25,7 @@ let clamp = fclamp 0.0f 1.0f
 
 // quantize a float to any amount on an arbitrary closed interval
 let flevels lo hi count channel :Channel =
-    let ct = float32 count
+    let ct = count - 1 |> float32
     let range = hi - lo
     let ch = (channel - lo)/range * ct |> round
     (ch/ct) * range + lo
