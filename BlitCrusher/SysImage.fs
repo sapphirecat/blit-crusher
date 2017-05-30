@@ -8,17 +8,17 @@ open System.Drawing.Imaging
 open BlitCrusher.T
 
 
-let normalize (x:byte) :Channel =
-    float32 x / 255.0f
-let denormalize (x:Channel) =
-    255.0f * x |> byte
+let normalize (x:byte) =
+    Channel (float32 x / 255.0f)
+let denormalize x =
+    255.0f * (channelToF32 x) |> byte
 
-let pixelFromSlot (v:array<byte>) (o:int) :Pixel =
+let pixelFromSlot (v:byte[]) (o:int) :Pixel =
     {   R = normalize v.[o+2];
         G = normalize v.[o+1];
         B = normalize v.[o];
         A = normalize v.[o+3] }
-let pixelToSlot (v:array<byte>) (o:int) p =
+let pixelToSlot (v:byte[]) (o:int) p =
     v.[o+3] <- denormalize p.A
     v.[o+2] <- denormalize p.R
     v.[o+1] <- denormalize p.G

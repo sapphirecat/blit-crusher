@@ -11,15 +11,18 @@ let modclamp lo hi value :Channel =
         if v < lo then v + range |> step
         elif v >= hi then v - range |> step
         else v
-    step value
+    withChannel step value
 // specialize for hue
 let hueclamp = modclamp 0.0f 360.0f
 
 // clamp a value to an arbitrary closed interval
 let fclamp lo hi value :Channel =
-    if value < lo then lo
-    elif value > hi then hi
-    else value
+    let cmp v =
+        if v < lo then lo
+        elif v > hi then hi
+        else v
+    withChannel cmp value
+
 // clamp to [0,1]
 let clamp = fclamp 0.0f 1.0f
 
@@ -27,13 +30,17 @@ let clamp = fclamp 0.0f 1.0f
 let flevels lo hi count channel :Channel =
     let ct = count - 1 |> float32
     let range = hi - lo
-    let ch = (channel - lo)/range * ct |> round
-    (ch/ct) * range + lo
+    let quant chan =
+        let ch = (chan - lo)/range * ct |> round
+        (ch/ct) * range + lo
+    withChannel quant channel
 // flevels on [0,1]
-let levels count (channel:Channel) :Channel =
+let levels count channel =
     let ct = count - 1 |> float32
-    let c = channel * ct |> round
-    c/ct
+    let quant chan =
+        let c = chan * ct |> round
+        c/ct
+    withChannel quant channel
 
 let bits depth channel =
     let _lv = 2.0f ** float32 depth |> round |> int
@@ -41,25 +48,33 @@ let bits depth channel =
 
 let toHSV px =
     // find the min/max channel values
-    let maxC = Array.reduce max [| px.R; px.G; px.B |]
-    let minC = Array.reduce min [| px.R; px.G; px.B |]
+    let r = channelToF32 px.R
+    let g = channelToF32 px.G
+    let b = channelToF32 px.B
+    let px' = [| r; g; b |]
+    let maxC = Array.reduce max px'
+    let minC = Array.reduce min px'
     // range between max/min
     let delta = maxC - minC
 
     // calculate a basic hue based on delta and which channel is max
     let h = if maxC <= minC then 0.0f
-            elif maxC <= px.R then (px.G - px.B)
-            elif maxC <= px.G then 2.0f + (px.B - px.R)
-            else 4.0f + (px.R - px.G)
+            elif maxC <= r then (g - b)
+            elif maxC <= g then 2.0f + (b - r)
+            else 4.0f + (r - g)
     // calculate final hue
-    let h' = h*60.0f |> hueclamp
+    let h' = h*60.0f |> Channel |> hueclamp
     // safely calculate saturation
     let s = if maxC > 0.0f then delta/maxC else 0.0f
-    h',s,maxC
-let fromAHSV a (h:Channel, s:Channel, v:Channel) =
-    let h' = h / 60.0f
-    let i = h' |> floor
-    let f = h' - i
+    h', Channel s, Channel maxC
+let fromAHSV a (hC, sC, vC) =
+    let h = channelToF32 hC / 60.0f
+    let s = channelToF32 sC
+    let v = channelToF32 vC
+    // integer and fractional parts of hue
+    let i = h |> floor
+    let f = h - i
+    // magic values (I never understood these, nor their names)
     let p = v * (1.0f - s)
     let q = v * (1.0f - s * f)
     let t = v * (1.0f - s * (1.0f - f))
@@ -72,8 +87,8 @@ let fromAHSV a (h:Channel, s:Channel, v:Channel) =
         elif i < 4.0f then p,q,v
         elif i < 5.0f then t,p,v
         else v,p,q
-    {R = red; G = green; B = blue; A = a }
-let fromHSV = fromAHSV 1.0f
+    {R = Channel red; G = Channel green; B = Channel blue; A = a }
+let fromHSV = fromAHSV (Channel 1.0f)
 
 
 let asRGBA redfn greenfn bluefn alphafn px =
