@@ -43,22 +43,33 @@ let tagname (basename:string) tag =
     basename.Substring(0, splice) + "." + tag + ".png"
 
 let transformations = 
-    [|  "hsv422", hsv422;
+    dict [|
+        "red", redder;
+        "grn", greener;
+        "blu", bluer;
+        "lfa", transer;
+        "hsv422", hsv422;
         "hsva5443", hsva5443;
         "rgba4444", rgba4444;
         "rgba2222", rgba2222;
         "rgb332", rgb332 |]
 
-let transformOne input tag operator =
+let parseCmdLine argv =
+    let alltransforms = set transformations.Keys
+    let isTransform x = alltransforms.Contains(x)
+    let transforms = Array.filter isTransform
+    let files = Array.filter (fun s -> not (isTransform s))
+    transforms argv,files argv
+
+let fileDoOne input tag =
+    let operator = transformations.[tag]
     tagname input tag |> transformFile operator input
-let transformAll input =
-    [|for tag,operator in transformations do
-        yield transformOne input tag operator |]
+
+let fileDoAll input transforms =
+    Array.map (fileDoOne input) transforms
 
 [<EntryPoint>]
 let main argv = 
-    let input = match argv.Length with
-                | 0 -> [|"file.png"|]
-                | _ -> argv
-    Array.iter (fun x -> transformAll x |> ignore) input
+    let transforms,input = parseCmdLine argv
+    Array.map (fun i -> fileDoAll i transforms) input |> ignore
     0 // return an integer exit code
