@@ -71,5 +71,13 @@ let fileDoAll input transforms =
 [<EntryPoint>]
 let main argv = 
     let transforms,input = parseCmdLine argv
-    Array.map (fun i -> fileDoAll i transforms) input |> ignore
+    let safeTransforms =
+        match transforms.Length with
+        | 0 -> [| for s in transformations.Keys -> s |]
+        | _ -> transforms
+    let safeInput =
+        match input.Length with
+        | 0 -> [| "file.png" |]
+        | _ -> input
+    Array.map (fun i -> fileDoAll i safeTransforms) safeInput |> ignore
     0 // return an integer exit code
