@@ -127,4 +127,4 @@ let transformFile operator input output =
     let source = loadFile input
     match source with
     | Ok image -> Ok (transformSource operator image output)
-    | Error _ -> source
+    | _ -> source
