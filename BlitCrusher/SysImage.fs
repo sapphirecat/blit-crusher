@@ -38,23 +38,31 @@ let freeData source data =
     source.Image.UnlockBits(data)
 
 let loadFile filename =
-    {Image = new Bitmap(Image.FromFile(filename)); Filename = Some filename}
+    try
+        Ok {Image = new Bitmap(Image.FromFile(filename)); Filename = Some filename}
+    with ex ->
+        Error ex
 
-let newImage (width:int) (height:int) filename =
-    {Image = new Bitmap(width, height); Filename = Some filename}
+let _newImage (width:int) (height:int) filename =
+    {Image = new Bitmap(width, height); Filename = filename}
+
+let newImage width height filename =
+    _newImage width height (Some filename)
 
 let newImageFrom source =
     let image = source.Image
-    {Image = new Bitmap(image.Width, image.Height); Filename = None}
+    _newImage image.Width image.Height None
+
 
 let saveImage image =
     match image.Filename with
     | Some name -> image.Image.Save(name)
     | None -> invalidOp "Image does not have a filename, use saveImageAs"
+    image
 
 let saveImageAs image filename =
     image.Image.Save(filename)
-    {Image = image.Image; Filename = Some filename}
+    {image with Filename = Some filename}
 
 let getPixels image =
     let meta = getDataIn image

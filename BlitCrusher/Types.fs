@@ -19,3 +19,11 @@ type Pixel = {
     A: Channel }
 let pixelToF32 px =
     Array.map channelToF32 [| px.R; px.G; px.B |]
+
+type CliData = {
+    transforms: string[];
+    files: string[]
+}
+type CliResult =
+    | CliParse of CliData
+    | CliError of string

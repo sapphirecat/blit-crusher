@@ -119,7 +119,12 @@ let foreachPixel operator source =
     finally
         freeData source meta
 
+let transformSource operator image output =
+    let dest = foreachPixel operator image
+    saveImageAs dest output
+
 let transformFile operator input output =
     let source = loadFile input
-    let dest = foreachPixel operator source
-    saveImageAs dest output
+    match source with
+    | Ok image -> Ok (transformSource operator image output)
+    | Error _ -> source

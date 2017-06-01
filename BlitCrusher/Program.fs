@@ -57,9 +57,17 @@ let transformations =
 let parseCmdLine argv =
     let alltransforms = set transformations.Keys
     let isTransform x = alltransforms.Contains(x)
-    let transforms = Array.filter isTransform
-    let files = Array.filter (fun s -> not (isTransform s))
-    transforms argv,files argv
+    let transforms = Array.filter isTransform argv
+    let files = Array.filter (fun s -> not (isTransform s)) argv
+
+    let transforms' =
+        match transforms.Length with
+        | 0 -> [| for t in alltransforms -> t |]
+        | _ -> transforms
+    match files.Length with
+        | 0 -> CliError "No input files were given"
+        | _ -> CliParse { transforms = transforms'; files = files }
+
 
 let fileDoOne input tag =
     let operator = transformations.[tag]
@@ -68,16 +76,36 @@ let fileDoOne input tag =
 let fileDoAll input transforms =
     Array.map (fileDoOne input) transforms
 
+
+let reportCli images =
+    let failFilter v =
+        match v with
+        | Ok _ -> false
+        | Error _ -> true
+    let failures = Array.filter failFilter images
+    Array.iter (printfn "Failed: %A") failures
+    match failures.Length with
+    | 0 -> 0
+    | _ -> 1
+
+let runCli r =
+    Array.collect (fun i -> fileDoAll i r.transforms) r.files
+
+let showUsage rv =
+    printfn "Usage: BlitCrusher [transformations] FILE [FILE2 ...]"
+    printfn ""
+    printfn "Runs transformations (all possible ones, by default) on each input file."
+    match rv with
+    | Some i -> i
+    | None -> 0
+
+let showUsageError s =
+    printfn "Argument error: %s" s
+    showUsage (Some 2) // "CLI argument problem" exit code
+
 [<EntryPoint>]
 let main argv = 
-    let transforms,input = parseCmdLine argv
-    let safeTransforms =
-        match transforms.Length with
-        | 0 -> [| for s in transformations.Keys -> s |]
-        | _ -> transforms
-    let safeInput =
-        match input.Length with
-        | 0 -> [| "file.png" |]
-        | _ -> input
-    Array.map (fun i -> fileDoAll i safeTransforms) safeInput |> ignore
-    0 // return an integer exit code
+    let parsed = parseCmdLine argv
+    match parsed with
+    | CliParse r -> runCli r |> reportCli
+    | CliError s -> showUsageError s
