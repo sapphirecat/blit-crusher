@@ -8,10 +8,9 @@ type Image = {
 
 type Channel = Channel of float32
 let withChannel f value =
-    match value with
-    | Channel x -> Channel (f x)
+    match value with Channel x -> Channel (f x)
 let channelToF32 value =
-    match value with | Channel x -> x
+    match value with Channel x -> x
 type Pixel = {
     R: Channel;
     G: Channel;
