@@ -20,6 +20,13 @@ F#.
 
 You should write about it on your [blag](https://xkcd.com/148/).
 
+# Roadmap
+
+I found out GitHub has a mini-Trello they call
+[Projects](https://github.com/sapphirecat/blit-crusher/projects),
+so I put everything there.
+It seems a lot lighter weight than making an issue for everything.
+
 # License
 
 Not decided yet.
