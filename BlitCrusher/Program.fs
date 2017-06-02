@@ -32,6 +32,8 @@ let rgba2222 p =
 
 let hsv422 =
     asHSV (levels 15) bit2 bit2
+let hsv633 =
+    asHSV (levels 60) bit3 bit3
 let hsva5443 =
     asHSVA (levels 30) bit4 bit4 bit3
 
@@ -49,6 +51,7 @@ let transformations =
         "blu", bluer;
         "lfa", transer;
         "hsv422", hsv422;
+        "hsv633", hsv633;
         "hsva5443", hsva5443;
         "rgba4444", rgba4444;
         "rgba2222", rgba2222;
