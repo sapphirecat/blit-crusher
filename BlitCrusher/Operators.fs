@@ -46,6 +46,21 @@ let bits depth channel =
     let _lv = 2.0f ** float32 depth |> round |> int
     levels _lv channel
 
+
+let toLinearSpace matrix px =
+    let a,b,c =
+        pixelToMatrix px
+        |> matrixMult matrix
+        |> matrixToTuple
+    a,b,c
+// FIXME: alpha is a pain. it doesn't participate in the color transforms,
+// but I want to carry it through.  (but toLinearSpace doesn't...)
+let fromLinearSpace matrix tuple3 alpha =
+    tupleToMatrix tuple3
+    |> matrixMult matrix
+    |> matrixToPixel alpha
+
+
 let toHSV px =
     // find the min/max channel values
     let r = channelToF32 px.R

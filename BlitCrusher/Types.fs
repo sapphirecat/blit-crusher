@@ -52,5 +52,8 @@ let pixelToMatrix px =
     matrixInit 3 1 floats
 let matrixToPixel alpha (m:Matrix) =
     {R = Channel m.[0,0]; G = Channel m.[1,0]; B = Channel m.[2,0]; A = alpha}
+let tupleToMatrix (a,b,c) =
+    let floats = Array.map channelToF32 [| a; b; c |]
+    matrixInit 3 1 floats
 let matrixToTuple (m:Matrix) =
     Channel m.[0,0], Channel m.[1,0], Channel m.[2,0]
