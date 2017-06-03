@@ -3,7 +3,7 @@ open BlitCrusher.Image
 open BlitCrusher.Operators
 
 let averageChan a b =
-    withChannel (fun x -> (x+b) / 2.0f) a
+    Channel.transform (fun x -> (x+b) / 2.0f) a
 
 // 1-channel functions for making sure the channel mapping is correct
 let redder p =
@@ -21,21 +21,26 @@ let bit3 = bits 3
 let bit4 = bits 4
 let bit5 = bits 5
 let bit6 = bits 6
+let bit7 = bits 7
+let bit8 = bits 8
 
 // RGB bit-crushing transformation functions
 let rgba4444 p =
     {R = bit4 p.R; G = bit4 p.G; B = bit4 p.B; A = bit4 p.A}
 let rgb332 p =
-    {R = bit3 p.R; G = bit3 p.G; B = bit2 p.B; A = Channel 1.0f}
+    {R = bit3 p.R; G = bit3 p.G; B = bit2 p.B; A = Opaque}
 let rgba2222 p =
     {R = bit2 p.R; G = bit2 p.G; B = bit2 p.B; A = bit2 p.A}
 
-let hsv422 =
-    asHSV (levels 15) bit2 bit2
-let hsv633 =
-    asHSV (levels 60) bit3 bit3
-let hsva5443 =
-    asHSVA (levels 30) bit4 bit4 bit3
+let yiq332 = asYIQ bit3 bit3 bit2
+let yiq844 = asYIQ bit8 bit4 bit4
+let yiq853 = asYIQ bit8 bit5 bit3
+let yiq655 = asYIQ bit6 bit5 bit5
+
+let hsv422_12 = asHSV  (levels 12) bit2 bit2
+let hsv422_15 = asHSV  (levels 15) bit2 bit2
+let hsv633    = asHSV  (levels 60) bit3 bit3
+let hsva5443  = asHSVA (levels 30) bit4 bit4 bit3
 
 // take an input filename and add a tag to it before the last dot
 // e.g. `tagname input "red"` for use with an operator that makes it red
@@ -50,9 +55,14 @@ let transformations =
         "grn", greener;
         "blu", bluer;
         "lfa", transer;
-        "hsv422", hsv422;
+        "hsv422_12", hsv422_12;
+        "hsv422_15", hsv422_15;
         "hsv633", hsv633;
         "hsva5443", hsva5443;
+        "yiq332", yiq332;
+        "yiq844", yiq844;
+        "yiq853", yiq853;
+        "yiq655", yiq655;
         "rgba4444", rgba4444;
         "rgba2222", rgba2222;
         "rgb332", rgb332 |]

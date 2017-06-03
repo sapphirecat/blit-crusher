@@ -3,56 +3,15 @@
 open BlitCrusher.T
 open BlitCrusher.Image
 
-// example: `modclamp 0.0f 360.0f hue` will bring hue into
-// the half-open interval [0,360) without changing the hue.
-let modclamp lo hi value :Channel =
-    let range = hi - lo
-    let rec step v =
-        if v < lo then v + range |> step
-        elif v >= hi then v - range |> step
-        else v
-    withChannel step value
-// specialize for hue
-let hueclamp = modclamp 0.0f 360.0f
 
-// clamp a value to an arbitrary closed interval
-let fclamp lo hi value :Channel =
-    let cmp v =
-        if v < lo then lo
-        elif v > hi then hi
-        else v
-    withChannel cmp value
-
-// clamp to [0,1]
-let clamp = fclamp 0.0f 1.0f
-
-// quantize a float to any amount on an arbitrary closed interval
-let flevels lo hi count channel :Channel =
-    let ct = count - 1 |> float32
-    let range = hi - lo
-    let quant chan =
-        let ch = (chan - lo)/range * ct |> round
-        (ch/ct) * range + lo
-    withChannel quant channel
-// flevels on [0,1]
-let levels count channel =
-    let ct = count - 1 |> float32
-    let quant chan =
-        let c = chan * ct |> round
-        c/ct
-    withChannel quant channel
-
-let bits depth channel =
-    let _lv = 2.0f ** float32 depth |> round |> int
-    levels _lv channel
+let levels = Channel.levels
+let bits = Channel.bits
 
 
-let toLinearSpace matrix px =
-    let a,b,c =
-        pixelToMatrix px
-        |> matrixMult matrix
-        |> matrixToTuple
-    a,b,c
+let toLinearSpace matrix loRanges hiRanges px =
+    pixelToMatrix px
+    |> matrixMult matrix
+    |> matrixToRangeTuple loRanges hiRanges
 // FIXME: alpha is a pain. it doesn't participate in the color transforms,
 // but I want to carry it through.  (but toLinearSpace doesn't...)
 let fromLinearSpace matrix tuple3 alpha =
@@ -61,11 +20,28 @@ let fromLinearSpace matrix tuple3 alpha =
     |> matrixToPixel alpha
 
 
+let toYIQ px =
+    let t =
+        [| 0.299f;  0.587f;  0.114f;
+           0.596f; -0.275f; -0.321f;
+           0.212f; -0.523f;  0.311f |]
+    let t' = matrixInit 3 3 t
+    let lo = [| 0.0f; -0.5957f; -0.5226f |]
+    let hi = [| 1.0f; -lo.[1];  -lo.[2] |]
+    toLinearSpace t' lo hi px
+let fromAYIQ a yiq =
+    let t =
+        [| 1.0f;  0.956f;  0.621f;
+           1.0f; -0.272f; -0.647f;
+           1.0f; -1.105f;  1.702f |]
+    let t' = matrixInit 3 3 t
+    fromLinearSpace t' yiq a
+let fromYIQ = fromAYIQ Opaque
+
+
 let toHSV px =
     // find the min/max channel values
-    let r = channelToF32 px.R
-    let g = channelToF32 px.G
-    let b = channelToF32 px.B
+    let r, g, b = Pixel.asTuple3 px
     let px' = [| r; g; b |]
     let maxC = Array.reduce max px'
     let minC = Array.reduce min px'
@@ -78,14 +54,14 @@ let toHSV px =
             elif maxC <= g then 2.0f + (b - r)
             else 4.0f + (r - g)
     // calculate final hue
-    let h' = h*60.0f |> Channel |> hueclamp
+    let h' = h*60.0f |> Channel.Hue
     // safely calculate saturation
     let s = if maxC > 0.0f then delta/maxC else 0.0f
-    h', Channel s, Channel maxC
+    h', Channel.Std s, Channel.Std maxC
 let fromAHSV a (hC, sC, vC) =
-    let h = channelToF32 hC / 60.0f
-    let s = channelToF32 sC
-    let v = channelToF32 vC
+    let h = Channel.raw hC / 60.0f
+    let s = Channel.raw sC
+    let v = Channel.raw vC
     // integer and fractional parts of hue
     let i = h |> floor
     let f = h - i
@@ -102,8 +78,8 @@ let fromAHSV a (hC, sC, vC) =
         elif i < 4.0f then p,q,v
         elif i < 5.0f then t,p,v
         else v,p,q
-    {R = Channel red; G = Channel green; B = Channel blue; A = a }
-let fromHSV = fromAHSV (Channel 1.0f)
+    Pixel.RGBA red green blue (Channel.normalize a)
+let fromHSV = fromAHSV Opaque
 
 
 let asRGBA redfn greenfn bluefn alphafn px =
@@ -117,6 +93,13 @@ let asHSVA huefn satfn valfn alphafn px =
     fromAHSV a (huefn h, satfn s, valfn v)
 let asHSV huefn satfn valfn =
     asHSVA huefn satfn valfn id
+
+let asYIQA yfn ifn qfn alphafn px =
+    let y, i, q = toYIQ px
+    let a = alphafn px.A
+    fromAYIQ a (yfn y, ifn i, qfn q)
+let asYIQ yfn ifn qfn =
+    asYIQA yfn ifn qfn id
 
 // ideally, there'd be a generic "get mask" function and foreachPixel
 // would just be a 1x1 mask application

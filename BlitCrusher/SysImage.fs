@@ -9,9 +9,9 @@ open BlitCrusher.T
 
 
 let normalize (x:byte) =
-    Channel (float32 x / 255.0f)
+    Channel.Std (float32 x / 255.0f)
 let denormalize x =
-    255.0f * (channelToF32 x) |> byte
+    255.0f * (Channel.normalize x) |> byte
 
 let pixelFromSlot (v:byte[]) (o:int) :Pixel =
     {   R = normalize v.[o+2];
