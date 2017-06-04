@@ -91,7 +91,14 @@ let parseCmdLine argv =
 
 let fileDoOne input tag =
     let operator = transformations.[tag]
-    tagname input tag |> transformFile operator input
+    let out = tagname input tag |> transformFile operator input
+    match out with
+    | Ok img ->
+        match img.Filename with
+        | Some name -> printfn "%s -> %s" input name
+        | None -> printfn "UNSAVED %s" input
+    | Error e -> printfn "ERROR %s: %s" input e.Message
+    out
 
 let fileDoAll input transforms =
     Array.map (fileDoOne input) transforms
