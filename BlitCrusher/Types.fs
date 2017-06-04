@@ -12,11 +12,11 @@ type Channel = Channel of RangedFloat with
     static member raw channel =
         match channel with Channel (x,_,_) -> x
     static member normalize channel =
-        match channel with Channel (x,lo,hi) -> (x+lo)/(hi-lo)
+        match channel with Channel (x,lo,hi) -> (x-lo)/(hi-lo)
     static member denormalize channel value =
         match channel with
         Channel (_,lo,hi) ->
-            let x = (hi - lo) * value - lo
+            let x = (hi - lo) * value + lo
             Channel (x, lo, hi)
     static member transform operator value =
         Channel.normalize value
