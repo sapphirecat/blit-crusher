@@ -54,7 +54,9 @@ let hsva5443  = asHSVA (levels 30) bit4 bit4 bit3
 // also forces png; e.g. file.jpg -> file.tag.png
 let tagname (basename:string) tag =
     let splice = basename.LastIndexOf('.')
-    basename.Substring(0, splice) + "." + tag + ".png"
+    match splice with
+    | -1 -> basename + "." + tag + ".png"
+    | _  -> basename.Substring(0, splice) + "." + tag + ".png"
 
 let transformations = 
     dict [|
