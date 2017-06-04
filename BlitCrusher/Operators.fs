@@ -30,7 +30,7 @@ let toYIQ px =
            0.212; -0.523;  0.311 |]
     let t' = matrixInit 3 3 t
     let lo = [| 0.0; -0.5957; -0.5226 |]
-    let hi = [| 1.0; -lo.[1];  -lo.[2] |]
+    let hi = [| 1.0; -lo.[1]; -lo.[2] |]
     toLinearSpace t' lo hi px
 let fromAYIQ a yiq =
     let t =
