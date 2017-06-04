@@ -26,9 +26,8 @@ type Channel = Channel of RangedFloat with
     // Quantizers
     static member levels nLevels channel =
         let v = Channel.normalize channel
-        v * (float32 nLevels)
-        |> round
-        |> Channel.denormalize channel
+        let n = float32 nLevels
+        round (v*n) / n |> Channel.denormalize channel
     static member bits depth =
         2.0f ** (float32 depth) |> int |> Channel.levels
 
