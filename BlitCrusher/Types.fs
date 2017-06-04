@@ -6,7 +6,10 @@ type Image = {
     Image: Bitmap;
     Filename: string option }
 
-type RangedFloat = float32 * float32 * float32
+let roundHalfUp (value:float) =
+    System.Math.Round(value, System.MidpointRounding.AwayFromZero)
+
+type RangedFloat = float * float * float
 type Channel = Channel of RangedFloat with
     // Data access
     static member raw channel =
@@ -26,10 +29,10 @@ type Channel = Channel of RangedFloat with
     // Quantizers
     static member levels nLevels channel =
         let v = Channel.normalize channel
-        let n = nLevels - 1 |> float32
-        round (v*n) / n |> Channel.denormalize channel
+        let n = nLevels - 1 |> float
+        roundHalfUp (v*n) / n |> Channel.denormalize channel
     static member bits depth =
-        2.0f ** (float32 depth) |> int |> Channel.levels
+        2.0 ** (float depth) |> int |> Channel.levels
 
     // Range clamping
     static member private _modclamp lo hi value =
@@ -41,10 +44,10 @@ type Channel = Channel of RangedFloat with
         step value
 
     // Constructors
-    static member Std x = Channel (x,0.0f,1.0f)   // Standard (0 to 1)
+    static member Std x = Channel (x,0.0,1.0)   // Standard (0 to 1)
     static member Hue x =                         // Hue (0 to 360)
-        let lo = 0.0f
-        let hi = 360.0f
+        let lo = 0.0
+        let hi = 360.0
         Channel (Channel._modclamp lo hi x, lo, hi)
 
 
@@ -58,7 +61,7 @@ type Pixel with
         {R = Channel.Std r; G = Channel.Std g; B = Channel.Std b; A = Channel.Std a}
     static member asTuple3 px =
         (Channel.raw px.R, Channel.raw px.G, Channel.raw px.B)
-let Opaque = Channel.Std 1.0f
+let Opaque = Channel.Std 1.0
 
 type CliData = {
     transforms: string[];
@@ -68,8 +71,8 @@ type CliResult =
     | CliParse of CliData
     | CliError of string
 
-type Matrix = float32[,]
-let matrixInit rows cols (data:float32[]) :Matrix =
+type Matrix = float[,]
+let matrixInit rows cols (data:float[]) :Matrix =
     if data.Length = rows*cols then
         Array2D.init rows cols (fun r c -> data.[r*cols + c])
     else
@@ -90,7 +93,7 @@ let matrixMult (a:Matrix) (b:Matrix) :Matrix =
 
 let tupleToMatrix (a,b,c) =
     matrixInit 3 1 [| Channel.raw a; Channel.raw b; Channel.raw c |]
-let matrixToRangeTuple (low:float32[]) (high:float32[]) (m:Matrix) =
+let matrixToRangeTuple (low:float[]) (high:float[]) (m:Matrix) =
     let slot s = Channel (m.[s,0],low.[s],high.[s])
     slot 0, slot 1, slot 2
 

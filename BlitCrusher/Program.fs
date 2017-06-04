@@ -3,17 +3,17 @@ open BlitCrusher.Image
 open BlitCrusher.Operators
 
 let averageChan a b =
-    Channel.transform (fun x -> (x+b) / 2.0f) a
+    Channel.transform (fun x -> (x+b) / 2.0) a
 
 // 1-channel functions for making sure the channel mapping is correct
 let redder p =
-    {R = averageChan p.R 1.0f; G = p.G; B = p.B; A = p.A}
+    {R = averageChan p.R 1.0; G = p.G; B = p.B; A = p.A}
 let greener p =
-    {G = averageChan p.G 1.0f; R = p.R; B = p.B; A = p.A}
+    {G = averageChan p.G 1.0; R = p.R; B = p.B; A = p.A}
 let bluer p =
-    {B = averageChan p.B 1.0f; G = p.G; R = p.R; A = p.A}
+    {B = averageChan p.B 1.0; G = p.G; R = p.R; A = p.A}
 let transer p =
-    {A = averageChan p.A 0.2f; G = p.G; B = p.B; R = p.R}
+    {A = averageChan p.A 0.2; G = p.G; B = p.B; R = p.R}
    
 // basic bit-crushing primitives
 let bit2 = bits 2
