@@ -23,6 +23,13 @@ let bit5 = bits 5
 let bit6 = bits 6
 let bit7 = bits 7
 let bit8 = bits 8
+let near2 = nearbits 2
+let near3 = nearbits 3
+let near4 = nearbits 4
+let near5 = nearbits 5
+let near6 = nearbits 6
+let near7 = nearbits 7
+let near8 = nearbits 8
 
 // RGB bit-crushing transformation functions
 let rgba4444 p =
@@ -32,10 +39,10 @@ let rgb332 p =
 let rgba2222 p =
     {R = bit2 p.R; G = bit2 p.G; B = bit2 p.B; A = bit2 p.A}
 
-let yiq332 = asYIQ bit3 bit3 bit2
-let yiq844 = asYIQ bit8 bit4 bit4
-let yiq853 = asYIQ bit8 bit5 bit3
-let yiq655 = asYIQ bit6 bit5 bit5
+let yiq332 = asYIQ bit3 near3 near2
+let yiq844 = asYIQ bit8 near4 near4
+let yiq853 = asYIQ bit8 near5 near3
+let yiq655 = asYIQ bit6 near5 near5
 
 let hsv422_12 = asHSV  (levels 12) bit2 bit2
 let hsv422_15 = asHSV  (levels 15) bit2 bit2

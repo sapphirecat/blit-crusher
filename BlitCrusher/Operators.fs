@@ -6,6 +6,9 @@ open BlitCrusher.Image
 
 let levels = Channel.levels
 let bits = Channel.bits
+let nearbits depth =
+    let n = 2.0f ** (float32 depth) |> int
+    levels (n - 1)
 
 
 let toLinearSpace matrix loRanges hiRanges px =
