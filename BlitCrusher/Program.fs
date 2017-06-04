@@ -82,7 +82,7 @@ let parseCmdLine argv =
 
     let transforms' =
         match transforms.Length with
-        | 0 -> [| for t in alltransforms -> t |]
+        | 0 -> alltransforms |> Set.toArray
         | _ -> transforms
     match files.Length with
         | 0 -> CliError "No input files were given"
