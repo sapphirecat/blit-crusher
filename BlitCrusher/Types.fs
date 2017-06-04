@@ -15,7 +15,7 @@ type Channel = Channel of RangedFloat with
         match channel with Channel (x,lo,hi) -> (x+lo)/(hi-lo)
     static member denormalize channel value =
         match channel with
-        Channel (_,hi,lo) ->
+        Channel (_,lo,hi) ->
             let x = (hi - lo) * value - lo
             Channel (x, lo, hi)
     static member transform operator value =
