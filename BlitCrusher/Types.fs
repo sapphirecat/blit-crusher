@@ -80,16 +80,18 @@ let matrixInit rows cols (data:float[]) :Matrix =
 let matrixMult (a:Matrix) (b:Matrix) :Matrix =
     let rows = Array2D.length1
     let cols = Array2D.length2
-    let acr = seq { 0 .. cols a - 1 }
-    let brr = seq { 0 .. rows b - 1 }
-    let cellMult outr outc =
-        Seq.map2 (fun ac br -> a.[outr,ac]*b.[br,outc]) acr brr
+    let mr = seq { 0 .. cols a - 1 } // "mid" range (or NxM * MxP -> M range)
+    let cellMult r c =
+        mr
+        |> Seq.map (fun k -> a.[r,k]*b.[k,c])
         |> Seq.sum
 
-    if cols a <> rows b then
-        invalidArg "b" "Row count of b does not match column count of a"
-    else
+    if cols a = rows b then
         Array2D.init (rows a) (cols b) cellMult
+    else
+        sprintf "Row count of b (%d) does not match column count of a (%d)" (rows b) (cols a)
+        |> invalidArg "b"
+
 
 let tupleToMatrix (a,b,c) =
     matrixInit 3 1 [| Channel.raw a; Channel.raw b; Channel.raw c |]
