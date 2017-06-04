@@ -89,34 +89,34 @@ let parseCmdLine argv =
         | _ -> CliParse { transforms = transforms'; files = files }
 
 
-let fileDoOne input tag =
+let fileDoOne reportfn input tag =
     let operator = transformations.[tag]
     let out = tagname input tag |> transformFile operator input
+    reportfn input out
+    out
+
+let fileDoAll reportfn input transforms =
+    Array.map (fileDoOne reportfn input) transforms
+
+
+let reportCliInline input (out:Result<Image,exn>) =
     match out with
     | Ok img ->
         match img.Filename with
         | Some name -> printfn "%s -> %s" input name
         | None -> printfn "UNSAVED %s" input
     | Error e -> printfn "ERROR %s: %s" input e.Message
-    out
-
-let fileDoAll input transforms =
-    Array.map (fileDoOne input) transforms
-
-
-let reportCli images =
-    let failFilter v =
-        match v with
-        | Ok _ -> false
-        | Error _ -> true
-    let failures = Array.filter failFilter images
-    Array.iter (printfn "Failed: %A") failures
-    match failures.Length with
-    | 0 -> 0
-    | _ -> 1
 
 let runCli r =
-    Array.collect (fun i -> fileDoAll i r.transforms) r.files
+    Array.collect (fun i -> fileDoAll reportCliInline i r.transforms) r.files
+let toExitCode results =
+    let isFailure item =
+        match item with
+        | Ok _ -> false
+        | _ -> true
+    match Array.exists isFailure results with
+    | true -> 1
+    | false -> 0
 
 let showUsage rv =
     printfn "Usage: BlitCrusher [transformations] FILE [FILE2 ...]"
@@ -134,5 +134,5 @@ let showUsageError s =
 let main argv = 
     let parsed = parseCmdLine argv
     match parsed with
-    | CliParse r -> runCli r |> reportCli
+    | CliParse r -> runCli r |> toExitCode
     | CliError s -> showUsageError s
