@@ -42,6 +42,26 @@ let fromAYIQ a yiq =
 let fromYIQ = fromAYIQ Opaque
 
 
+let toYUV px =
+    let uMax, vMax = 0.436, 0.615
+    let t =
+        [| 0.299;     0.587;    0.114;
+           -0.14713; -0.28886;  uMax;
+           vMax;     -0.51499; -0.10001 |]
+    let t' = matrixInit 3 3 t
+    let lo = [| 0.0; -uMax; -vMax |]
+    let hi = [| 1.0;  uMax;  vMax |]
+    toLinearSpace t' lo hi px
+let fromAYUV a yuv =
+    let t =
+        [| 1.0;  0.0;      1.13983;
+           1.0; -0.39645; -0.58060;
+           1.0; -2.03211;  0.0 |]
+    let t' = matrixInit 3 3 t
+    fromLinearSpace t' yuv a
+let fromYUV = fromAYUV Opaque
+
+
 let toHSV px =
     // find the min/max channel values
     let r, g, b = Pixel.asTuple3 px
@@ -103,6 +123,13 @@ let asYIQA yfn ifn qfn alphafn px =
     fromAYIQ a (yfn y, ifn i, qfn q)
 let asYIQ yfn ifn qfn =
     asYIQA yfn ifn qfn id
+
+let asYUVA yfn ufn vfn alphafn px =
+    let y, u, v = toYUV px
+    let a = alphafn px.A
+    fromAYUV a (yfn y, ufn u, vfn v)
+let asYUV yfn ufn vfn =
+    asYUVA yfn ufn vfn id
 
 // ideally, there'd be a generic "get mask" function and foreachPixel
 // would just be a 1x1 mask application

@@ -39,10 +39,15 @@ let rgb332 p =
 let rgba2222 p =
     {R = bit2 p.R; G = bit2 p.G; B = bit2 p.B; A = bit2 p.A}
 
-let yiq332 = asYIQ bit3 near3 near2
+let yiq332 = asYIQ bit3 bit3 bit2
 let yiq844 = asYIQ bit8 near4 near4
 let yiq853 = asYIQ bit8 near5 near3
 let yiq655 = asYIQ bit6 near5 near5
+
+let yuv332 = asYUV bit3 bit3 bit2
+let yuv844 = asYUV bit8 near4 near4
+let yuv853 = asYUV bit8 near5 near3
+let yuv655 = asYUV bit6 near5 near5
 
 let hsv422_12 = asHSV  (levels 12) bit2 bit2
 let hsv422_15 = asHSV  (levels 15) bit2 bit2
@@ -72,6 +77,10 @@ let transformations =
         "yiq844", yiq844;
         "yiq853", yiq853;
         "yiq655", yiq655;
+        "yuv332", yuv332;
+        "yuv844", yuv844;
+        "yuv853", yuv853;
+        "yuv655", yuv655;
         "rgba4444", rgba4444;
         "rgba2222", rgba2222;
         "rgb332", rgb332 |]
