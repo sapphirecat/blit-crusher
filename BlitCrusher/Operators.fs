@@ -131,6 +131,11 @@ let asYUVA yfn ufn vfn alphafn px =
 let asYUV yfn ufn vfn =
     asYUVA yfn ufn vfn id
 
+let asY yfn px =
+    let y, _, _ = toYIQ px
+    let y' = yfn y
+    {R = y'; G = y'; B = y'; A = px.A}
+
 // ideally, there'd be a generic "get mask" function and foreachPixel
 // would just be a 1x1 mask application
 let foreachPixel operator source =
