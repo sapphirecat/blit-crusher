@@ -55,6 +55,8 @@ let y6 = asY bit6
 let y4 = asY bit4
 let y3 = asY bit3
 let y2 = asY bit2
+let u3 = asU bit3
+let v2 = asV bit2
 
 let hsv422_12 = asHSV  (levels 12) bit2 bit2
 let hsv422_15 = asHSV  (levels 15) bit2 bit2
@@ -94,6 +96,8 @@ let transformations =
         "y4", y4;
         "y3", y3;
         "y2", y2;
+        "u3", u3;
+        "v2", v2;
         "rgba4444", rgba4444;
         "rgba2222", rgba2222;
         "rgb332", rgb332 |]

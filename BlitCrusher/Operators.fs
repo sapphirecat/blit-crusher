@@ -131,10 +131,17 @@ let asYUVA yfn ufn vfn alphafn px =
 let asYUV yfn ufn vfn =
     asYUVA yfn ufn vfn id
 
-let asY yfn px =
+let toGray value px =
+    {R = value; G = value; B = value; A = px.A}
+let asY fn px =
     let y, _, _ = toYIQ px
-    let y' = yfn y
-    {R = y'; G = y'; B = y'; A = px.A}
+    toGray (fn y) px
+let asU fn px =
+    let _, u, _ = toYUV px
+    toGray (fn u) px
+let asV fn px =
+    let _, _, v = toYUV px
+    toGray (fn v) px
 
 // ideally, there'd be a generic "get mask" function and foreachPixel
 // would just be a 1x1 mask application
