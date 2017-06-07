@@ -115,30 +115,24 @@ let fileDoOne reportfn input tag =
     let operator = transformations.[tag]
     let out = tagname input tag |> transformFile operator input
     reportfn input out
-    out
 
 let fileDoAll reportfn input transforms =
     Array.map (fileDoOne reportfn input) transforms
 
 
 let reportCliInline input (out:Result<Image,exn>) =
+    // let us pipe printfn somewhere, making
+    // "print and set exit code" a one-liner
+    let setCode c () = c
     match out with
     | Ok img ->
         match img.Filename with
-        | Some name -> printfn "%s -> %s" input name
-        | None -> printfn "UNSAVED %s" input
-    | Error e -> printfn "ERROR %s: %s" input e.Message
+        | Some name -> printfn "%s -> %s" input name |> setCode 0
+        | None -> printfn "UNSAVED %s" input |> setCode 1
+    | Error e -> printfn "ERROR %s: %s" input e.Message |> setCode 2
 
 let runCli r =
-    Array.collect (fun i -> fileDoAll reportCliInline i r.transforms) r.files
-let toExitCode results =
-    let isFailure item =
-        match item with
-        | Ok _ -> false
-        | _ -> true
-    match Array.exists isFailure results with
-    | true -> 1
-    | false -> 0
+    Array.collect (fun f -> fileDoAll reportCliInline f r.transforms) r.files
 
 let showUsage rv =
     printfn "Usage: BlitCrusher [transformations] FILE [FILE2 ...]"
@@ -156,5 +150,5 @@ let showUsageError s =
 let main argv = 
     let parsed = parseCmdLine argv
     match parsed with
-    | CliParse r -> runCli r |> toExitCode
+    | CliParse r -> runCli r |> Array.max
     | CliError s -> showUsageError s
