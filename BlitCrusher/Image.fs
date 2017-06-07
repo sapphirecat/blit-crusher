@@ -5,7 +5,7 @@ module BlitCrusher.Image
 
 open System.Drawing
 open System.Drawing.Imaging
-open BlitCrusher.T
+open BlitCrusher.Types
 
 
 let normalize (x:byte) =
@@ -81,3 +81,30 @@ let putPixels image (pixels:array<byte>) =
         image
     finally
         freeData image meta
+
+
+// ideally, there'd be a generic "get mask" function and foreachPixel
+// would just be a 1x1 mask application
+let foreachPixel operator source =
+    let dest = newImageFrom source
+    let pixels, meta = getPixels source
+    let pixels' = Array.zeroCreate pixels.Length
+    try
+        let bpp = 4
+        for slot in 0 .. bpp .. pixels.Length-1 do
+            pixelFromSlot pixels slot
+                |> operator
+                |> pixelToSlot pixels' slot
+        putPixels dest pixels'
+    finally
+        freeData source meta
+
+let transformSource operator image output =
+    let dest = foreachPixel operator image
+    saveImageAs dest output
+
+let transformFile operator input output =
+    let source = loadFile input
+    match source with
+    | Ok image -> Ok (transformSource operator image output)
+    | _ -> source

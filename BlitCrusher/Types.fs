@@ -1,4 +1,4 @@
-﻿module BlitCrusher.T
+﻿module BlitCrusher.Types
 
 open System.Drawing
 
@@ -31,8 +31,6 @@ type Channel = Channel of RangedFloat with
         let v = Channel.normalize channel
         let n = nLevels - 1 |> float
         roundHalfUp (v*n) / n |> Channel.denormalize channel
-    static member bits depth =
-        2.0 ** (float depth) |> int |> Channel.levels
 
     // Range clamping
     static member private _modclamp lo hi value =

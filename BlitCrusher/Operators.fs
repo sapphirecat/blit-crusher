@@ -1,14 +1,12 @@
 ﻿module BlitCrusher.Operators
 
-open BlitCrusher.T
-open BlitCrusher.Image
+open BlitCrusher.Types
 
 
 let levels = Channel.levels
-let bits = Channel.bits
-let nearbits depth =
-    let n = 2.0 ** (float depth) |> int
-    levels (n - 1)
+let private bits_ depth = 2.0 ** (float depth) |> int
+let bits depth = bits_ depth |> Channel.levels
+let nearbits depth = bits_ depth - 1 |> Channel.levels
 
 
 let toLinearSpace matrix loRanges hiRanges px =
@@ -142,29 +140,3 @@ let asU fn px =
 let asV fn px =
     let _, _, v = toYUV px
     toGray (fn v) px
-
-// ideally, there'd be a generic "get mask" function and foreachPixel
-// would just be a 1x1 mask application
-let foreachPixel operator source =
-    let dest = newImageFrom source
-    let pixels, meta = getPixels source
-    let pixels' = Array.zeroCreate pixels.Length
-    try
-        let bpp = 4
-        for slot in 0 .. bpp .. pixels.Length-1 do
-            pixelFromSlot pixels slot
-                |> operator
-                |> pixelToSlot pixels' slot
-        putPixels dest pixels'
-    finally
-        freeData source meta
-
-let transformSource operator image output =
-    let dest = foreachPixel operator image
-    saveImageAs dest output
-
-let transformFile operator input output =
-    let source = loadFile input
-    match source with
-    | Ok image -> Ok (transformSource operator image output)
-    | _ -> source

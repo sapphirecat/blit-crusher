@@ -1,4 +1,4 @@
-﻿open BlitCrusher.T
+﻿open BlitCrusher.Types
 open BlitCrusher.Image
 open BlitCrusher.Operators
 

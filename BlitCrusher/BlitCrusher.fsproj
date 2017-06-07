@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Types.fs" />
-    <Compile Include="SysImage.fs" />
+    <Compile Include="Image.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="Program.fs" />
     <None Include="packages.config" />
