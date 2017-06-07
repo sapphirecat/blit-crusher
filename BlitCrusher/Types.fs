@@ -33,20 +33,25 @@ type Channel = Channel of RangedFloat with
         roundHalfUp (v*n) / n |> Channel.denormalize channel
 
     // Range clamping
-    static member private _modclamp lo hi value =
+    static member private _new value lo hi =
+        let x =
+            if value < lo then lo
+            elif value >= hi then hi
+            else value
+        Channel (x,lo,hi)
+    static member private _modnew value lo hi =
         let range = hi - lo
         let rec step v =
             if v < lo then v + range |> step
             elif v >= hi then v - range |> step
             else v
-        step value
+        Channel (step value, lo, hi)
 
     // Constructors
-    static member Std x = Channel (x,0.0,1.0)   // Standard (0 to 1)
-    static member Hue x =                         // Hue (0 to 360)
-        let lo = 0.0
-        let hi = 360.0
-        Channel (Channel._modclamp lo hi x, lo, hi)
+    static member Std x = // Standard (0 to 1)
+        Channel._new x 0.0 1.0
+    static member Hue x = // Hue (0 to 360)
+        Channel._modnew x 0.0 360.0
 
 
 type Pixel = {
