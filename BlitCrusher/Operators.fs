@@ -21,42 +21,39 @@ let fromLinearSpace matrix tuple3 alpha =
     |> matrixToPixel alpha
 
 
+let private rgb2yiq =
+    [| 0.299;  0.587;  0.114;
+       0.596; -0.275; -0.321;
+       0.212; -0.523;  0.311 |] |> matrixInit 3 3
+let private yiq2rgb =
+    [| 1.0;  0.956;  0.621;
+       1.0; -0.272; -0.647;
+       1.0; -1.105;  1.702 |] |> matrixInit 3 3
 let toYIQ px =
-    let t =
-        [| 0.299;  0.587;  0.114;
-           0.596; -0.275; -0.321;
-           0.212; -0.523;  0.311 |]
-    let t' = matrixInit 3 3 t
     let lo = [| 0.0; -0.5957; -0.5226 |]
     let hi = [| 1.0; -lo.[1]; -lo.[2] |]
-    toLinearSpace t' lo hi px
+    toLinearSpace rgb2yiq lo hi px
 let fromAYIQ a yiq =
-    let t =
-        [| 1.0;  0.956;  0.621;
-           1.0; -0.272; -0.647;
-           1.0; -1.105;  1.702 |]
-    let t' = matrixInit 3 3 t
-    fromLinearSpace t' yiq a
+    fromLinearSpace yiq2rgb yiq a
 let fromYIQ = fromAYIQ Opaque
 
 
+let private uMax = 0.436
+let private vMax = 0.615
+let private rgb2yuv =
+    [| 0.299;    0.587;    0.114;
+      -0.14713; -0.28886;  uMax;
+       vMax;    -0.51499; -0.10001 |] |> matrixInit 3 3
+let private yuv2rgb =
+    [| 1.0;  0.0;      1.13983;
+       1.0; -0.39465; -0.58060;
+       1.0;  2.03211;  0.0 |] |> matrixInit 3 3
 let toYUV px =
-    let uMax, vMax = 0.436, 0.615
-    let t =
-        [| 0.299;    0.587;    0.114;
-          -0.14713; -0.28886;  uMax;
-           vMax;    -0.51499; -0.10001 |]
-    let t' = matrixInit 3 3 t
     let lo = [| 0.0; -uMax; -vMax |]
     let hi = [| 1.0;  uMax;  vMax |]
-    toLinearSpace t' lo hi px
+    toLinearSpace rgb2yuv lo hi px
 let fromAYUV a yuv =
-    let t =
-        [| 1.0;  0.0;      1.13983;
-           1.0; -0.39465; -0.58060;
-           1.0;  2.03211;  0.0 |]
-    let t' = matrixInit 3 3 t
-    fromLinearSpace t' yuv a
+    fromLinearSpace yuv2rgb yuv a
 let fromYUV = fromAYUV Opaque
 
 
