@@ -15,7 +15,7 @@ let toLinearSpace matrix loRanges hiRanges px =
     |> matrixToRangeTuple loRanges hiRanges
 // FIXME: alpha is a pain. it doesn't participate in the color transforms,
 // but I want to carry it through.  (but toLinearSpace doesn't...)
-let fromLinearSpace matrix tuple3 alpha =
+let fromLinearSpace matrix alpha tuple3 =
     tupleToMatrix tuple3
     |> matrixMult matrix
     |> matrixToPixel alpha
@@ -31,12 +31,9 @@ let private yiq2rgb =
        1.0; -1.105;  1.702 |] |> matrixInit 3 3
 let private yiqLoBounds = [| 0.0; -0.5957; -0.5226 |]
 let private yiqHiBounds = [| 1.0;  0.5957;  0.5226 |]
-let toYIQ px =
-    toLinearSpace rgb2yiq yiqLoBounds yiqHiBounds px
-let fromAYIQ a yiq =
-    fromLinearSpace yiq2rgb yiq a
-let fromYIQ yiq =
-    fromLinearSpace yiq2rgb yiq Opaque
+let toYIQ = toLinearSpace rgb2yiq yiqLoBounds yiqHiBounds
+let fromAYIQ = fromLinearSpace yiq2rgb
+let fromYIQ = fromLinearSpace yiq2rgb Opaque
 
 
 let private uMax = 0.436
@@ -51,12 +48,9 @@ let private yuv2rgb =
        1.0;  2.03211;  0.0 |] |> matrixInit 3 3
 let private yuvLoBounds = [| 0.0; -uMax; -vMax |]
 let private yuvHiBounds = [| 1.0;  uMax;  vMax |]
-let toYUV px =
-    toLinearSpace rgb2yuv yuvLoBounds yuvHiBounds px
-let fromAYUV a yuv =
-    fromLinearSpace yuv2rgb yuv a
-let fromYUV yuv =
-    fromLinearSpace yuv2rgb yuv Opaque
+let toYUV = toLinearSpace rgb2yuv yuvLoBounds yuvHiBounds
+let fromAYUV = fromLinearSpace yuv2rgb
+let fromYUV = fromLinearSpace yuv2rgb Opaque
 
 
 let toHSV px =
