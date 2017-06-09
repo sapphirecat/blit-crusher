@@ -29,13 +29,14 @@ let private yiq2rgb =
     [| 1.0;  0.956;  0.621;
        1.0; -0.272; -0.647;
        1.0; -1.105;  1.702 |] |> matrixInit 3 3
+let private yiqLoBounds = [| 0.0; -0.5957; -0.5226 |]
+let private yiqHiBounds = [| 1.0;  0.5957;  0.5226 |]
 let toYIQ px =
-    let lo = [| 0.0; -0.5957; -0.5226 |]
-    let hi = [| 1.0; -lo.[1]; -lo.[2] |]
-    toLinearSpace rgb2yiq lo hi px
+    toLinearSpace rgb2yiq yiqLoBounds yiqHiBounds px
 let fromAYIQ a yiq =
     fromLinearSpace yiq2rgb yiq a
-let fromYIQ = fromAYIQ Opaque
+let fromYIQ yiq =
+    fromLinearSpace yiq2rgb yiq Opaque
 
 
 let private uMax = 0.436
@@ -48,13 +49,14 @@ let private yuv2rgb =
     [| 1.0;  0.0;      1.13983;
        1.0; -0.39465; -0.58060;
        1.0;  2.03211;  0.0 |] |> matrixInit 3 3
+let private yuvLoBounds = [| 0.0; -uMax; -vMax |]
+let private yuvHiBounds = [| 1.0;  uMax;  vMax |]
 let toYUV px =
-    let lo = [| 0.0; -uMax; -vMax |]
-    let hi = [| 1.0;  uMax;  vMax |]
-    toLinearSpace rgb2yuv lo hi px
+    toLinearSpace rgb2yuv yuvLoBounds yuvHiBounds px
 let fromAYUV a yuv =
     fromLinearSpace yuv2rgb yuv a
-let fromYUV = fromAYUV Opaque
+let fromYUV yuv =
+    fromLinearSpace yuv2rgb yuv Opaque
 
 
 let toHSV px =
