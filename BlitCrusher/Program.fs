@@ -38,6 +38,10 @@ let rgb332 p =
     {R = bit3 p.R; G = bit3 p.G; B = bit2 p.B; A = Opaque}
 let rgba2222 p =
     {R = bit2 p.R; G = bit2 p.G; B = bit2 p.B; A = bit2 p.A}
+let rgb565 p =
+    {R = bit5 p.R; G = bit6 p.G; B = bit5 p.B; A = p.A}
+let rgba5551 p =
+    {R = bit5 p.R; G = bit5 p.G; B = bit5 p.B; A = levels 2 p.A}
 
 let yiq332 = asYIQ bit3 bit3 bit2
 let yiq844 = asYIQ bit8 near4 near4
@@ -92,6 +96,8 @@ let transformations =
         "y4", y4;
         "y3", y3;
         "y2", y2;
+        "rgb565", rgb565;
+        "rgba5551", rgba5551;
         "rgba4444", rgba4444;
         "rgba2222", rgba2222;
         "rgb332", rgb332 |]
