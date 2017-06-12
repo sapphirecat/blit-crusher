@@ -30,10 +30,7 @@ type Channel =
     abstract member denormalize: float -> Channel
     abstract member apply: (float -> float) -> Channel
 
-let normalize (c:Channel) = c.normalize()
-let denormalize (c:Channel) v = c.denormalize(v)
-let channelValue (c:Channel) = c.raw()
-let transform f (c:Channel) = c.apply(f)
+let inline private transform f (c:Channel) = c.normalize() |> f |> c.denormalize
 
 
 type Channel1 = private Channel1 of float with
@@ -41,11 +38,10 @@ type Channel1 = private Channel1 of float with
     member private self.toChannel value = Channel1.Create value :> Channel
     interface Channel with
         member self.raw () = match self with Channel1 value -> value
-        member self.normalize () =
-            let c = self :> Channel
-            c.raw()
+        member self.normalize () = (self :> Channel).raw()
         member self.denormalize value = self.toChannel value
-        member self.apply f = match self with Channel1 value -> f value |> self.toChannel
+        member self.apply f =
+            match self with Channel1 value -> f value |> self.toChannel
 
 type ChannelAxis = private {value:float; limit:float} with
     static member Create limit value =
@@ -56,9 +52,7 @@ type ChannelAxis = private {value:float; limit:float} with
         member self.denormalize value =
             let v = 2.0 * self.limit * value - self.limit
             ChannelAxis.Create self.limit v :> Channel
-        member self.apply f =
-            let chan = self :> Channel
-            chan.normalize() |> f |> chan.denormalize
+        member self.apply f = transform f self
 
 type ChannelMod = private {value:float; modulus:float} with
     static member Create modulus value =
@@ -69,24 +63,22 @@ type ChannelMod = private {value:float; modulus:float} with
         member self.denormalize value =
             let v = value * self.modulus
             ChannelMod.Create self.modulus v :> Channel
-        member self.apply f =
-            let chan = self :> Channel
-            chan.normalize() |> f |> chan.denormalize
+        member self.apply f = transform f self
 
 
-let createAlpha = Channel1.Create
+let private createAlpha = Channel1.Create
 
-let createY = Channel1.Create
-let createU = ChannelAxis.Create 0.436
-let createV = ChannelAxis.Create 0.615
-let createI = ChannelAxis.Create 0.5957
-let createQ = ChannelAxis.Create 0.5226
+let private createY = Channel1.Create
+let private createU = ChannelAxis.Create 0.436
+let private createV = ChannelAxis.Create 0.615
+let private createI = ChannelAxis.Create 0.5957
+let private createQ = ChannelAxis.Create 0.5226
 
-let createHue = ChannelMod.Create 360.0
-let createSat = Channel1.Create
-let createVal = Channel1.Create
+let private createHue = ChannelMod.Create 360.0
+let private createSat = Channel1.Create
+let private createVal = Channel1.Create
 
-let Opaque = createAlpha 1.0
+let private Opaque = createAlpha 1.0
 
 type PxRGB = private {R: Channel; G: Channel; B: Channel; A: Channel} with
     member self.r = self.R.normalize()
