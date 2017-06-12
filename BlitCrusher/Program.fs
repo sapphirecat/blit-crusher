@@ -2,10 +2,8 @@
 open BlitCrusher.Image
 open BlitCrusher.Operators
 
-let private average a b =
-    (a + b) / 2.0
-
 // 1-channel functions for making sure the channel mapping is correct
+let private average a b = (a + b) / 2.0
 let redder (p:PxRGB)  = ARGB p.a (average p.r 1.0, p.g, p.b)
 let greener (p:PxRGB) = ARGB p.a (p.r, average p.g 1.0, p.b)
 let bluer (p:PxRGB)   = ARGB p.a (p.r, p.g, average p.b 1.0)
