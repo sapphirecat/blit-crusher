@@ -8,23 +8,6 @@ open System.Drawing.Imaging
 open BlitCrusher.Types
 
 
-let normalize (x:byte) =
-    Channel.Std (float x / 255.0)
-let denormalize x =
-    255.0 * (Channel.normalize x) |> roundHalfUp |> byte
-
-let pixelFromSlot (v:byte[]) (o:int) :Pixel =
-    {   R = normalize v.[o+2];
-        G = normalize v.[o+1];
-        B = normalize v.[o];
-        A = normalize v.[o+3] }
-let pixelToSlot (v:byte[]) (o:int) p =
-    v.[o+3] <- denormalize p.A
-    v.[o+2] <- denormalize p.R
-    v.[o+1] <- denormalize p.G
-    v.[o]   <- denormalize p.B
-
-
 let getData lockmode source =
     let image = source.Image
     let rect = new Rectangle(0, 0, image.Width, image.Height)
@@ -85,16 +68,15 @@ let putPixels image (pixels:array<byte>) =
 
 // ideally, there'd be a generic "get mask" function and foreachPixel
 // would just be a 1x1 mask application
-let foreachPixel operator source =
+let foreachPixel (operator:PxRGB -> PxRGB) source =
     let dest = newImageFrom source
     let pixels, meta = getPixels source
     let pixels' = Array.zeroCreate pixels.Length
     try
         let bpp = 4
         for slot in 0 .. bpp .. pixels.Length-1 do
-            pixelFromSlot pixels slot
-                |> operator
-                |> pixelToSlot pixels' slot
+            let out = PxRGB.fromByteSlice pixels slot |> operator
+            out.setByteSlice pixels' slot
         putPixels dest pixels'
     finally
         freeData source meta

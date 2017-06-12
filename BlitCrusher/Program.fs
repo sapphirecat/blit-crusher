@@ -2,20 +2,19 @@
 open BlitCrusher.Image
 open BlitCrusher.Operators
 
-let averageChan a b =
-    Channel.transform (fun x -> (x+b) / 2.0) a
+let private average a b =
+    (a + b) / 2.0
 
 // 1-channel functions for making sure the channel mapping is correct
-let redder p =
-    {R = averageChan p.R 1.0; G = p.G; B = p.B; A = p.A}
-let greener p =
-    {G = averageChan p.G 1.0; R = p.R; B = p.B; A = p.A}
-let bluer p =
-    {B = averageChan p.B 1.0; G = p.G; R = p.R; A = p.A}
-let transer p =
-    {A = averageChan p.A 0.2; G = p.G; B = p.B; R = p.R}
+let redder (p:PxRGB)  = ARGB p.a (average p.r 1.0, p.g, p.b)
+let greener (p:PxRGB) = ARGB p.a (p.r, average p.g 1.0, p.b)
+let bluer (p:PxRGB)   = ARGB p.a (p.r, p.g, average p.b 1.0)
+let transer (p:PxRGB) =
+    let a = average p.a 0.2
+    ARGB a (p.r, p.g, p.b)
    
 // basic bit-crushing primitives
+let bit1 = bits 1
 let bit2 = bits 2
 let bit3 = bits 3
 let bit4 = bits 4
@@ -32,33 +31,34 @@ let near7 = nearbits 7
 let near8 = nearbits 8
 
 // RGB bit-crushing transformation functions
-let rgba4444 p =
-    {R = bit4 p.R; G = bit4 p.G; B = bit4 p.B; A = bit4 p.A}
-let rgb332 p =
-    {R = bit3 p.R; G = bit3 p.G; B = bit2 p.B; A = Opaque}
-let rgba2222 p =
-    {R = bit2 p.R; G = bit2 p.G; B = bit2 p.B; A = bit2 p.A}
-let rgb565 p =
-    {R = bit5 p.R; G = bit6 p.G; B = bit5 p.B; A = p.A}
-let rgba5551 p =
-    {R = bit5 p.R; G = bit5 p.G; B = bit5 p.B; A = levels 2 p.A}
+let rgba5551 = asRGBA bit5 bit5 bit5 bit1
+let rgba4444 = asRGBA bit4 bit4 bit4 bit4
+let rgba2222 = asRGBA bit2 bit2 bit2 bit2
+let rgb565   = asRGB bit5 bit6 bit5
+let rgb332   = asRGB bit3 bit3 bit2
 
+// YIQ bit-crushing
 let yiq332 = asYIQ bit3 bit3 bit2
 let yiq844 = asYIQ bit8 near4 near4
 let yiq853 = asYIQ bit8 near5 near3
 let yiq655 = asYIQ bit6 near5 near5
 
+// YUV bit-crushing
 let yuv332 = asYUV bit3 bit3 bit2
 let yuv844 = asYUV bit8 near4 near4
 let yuv853 = asYUV bit8 near5 near3
 let yuv655 = asYUV bit6 near5 near5
 
+// Gray (YIQ's Y) bit-crushing
 let y8 = asY bit8
 let y6 = asY bit6
 let y4 = asY bit4
 let y3 = asY bit3
 let y2 = asY bit2
 
+// HSV bit-crushing
+// _12 = purest tertiaries
+// _15 = most hues with prime factor of 3
 let hsv422_12 = asHSV  (levels 12) bit2 bit2
 let hsv422_15 = asHSV  (levels 15) bit2 bit2
 let hsv633    = asHSV  (levels 60) bit3 bit3
