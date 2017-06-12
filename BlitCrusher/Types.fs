@@ -50,29 +50,28 @@ type Channel1 = private Channel1 of float with
 type ChannelAxis = private {value:float; limit:float} with
     static member Create limit value =
         {value = saturate -limit limit value; limit = limit}
-    member private self.toChannel value =
-        ChannelAxis.Create self.limit value :> Channel
     interface Channel with
         member self.raw () = self.value
         member self.normalize () = (self.value+self.limit)/(2.0*self.limit)
-        member self.denormalize value = self.toChannel value
+        member self.denormalize value =
+            let v = 2.0 * self.limit * value - self.limit
+            ChannelAxis.Create self.limit v :> Channel
         member self.apply f =
             let chan = self :> Channel
-            chan.normalize() |> f |> self.toChannel
+            chan.normalize() |> f |> chan.denormalize
 
 type ChannelMod = private {value:float; modulus:float} with
     static member Create modulus value =
         {value = fmod value modulus; modulus = modulus}
-    member private self.toChannel value =
-        ChannelMod.Create self.modulus value :> Channel
     interface Channel with
         member self.raw () = self.value
         member self.normalize () = (self.value / self.modulus)
-        member self.denormalize value = value * self.modulus |> self.toChannel
+        member self.denormalize value =
+            let v = value * self.modulus
+            ChannelMod.Create self.modulus v :> Channel
         member self.apply f =
             let chan = self :> Channel
-            let v = chan.normalize() |> f
-            v * self.modulus |> self.toChannel
+            chan.normalize() |> f |> chan.denormalize
 
 
 let createAlpha = Channel1.Create
