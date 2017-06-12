@@ -68,10 +68,11 @@ type ChannelMod = private {value:float; modulus:float} with
     interface Channel with
         member self.raw () = self.value
         member self.normalize () = (self.value / self.modulus)
-        member self.denormalize value = self.toChannel value
+        member self.denormalize value = value * self.modulus |> self.toChannel
         member self.apply f =
             let chan = self :> Channel
-            chan.normalize() |> f |> self.toChannel
+            let v = chan.normalize() |> f
+            v * self.modulus |> self.toChannel
 
 
 let createAlpha = Channel1.Create
