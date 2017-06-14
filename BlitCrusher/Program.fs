@@ -1,6 +1,6 @@
-﻿open BlitCrusher.Types
-open BlitCrusher.Image
-open BlitCrusher.Operators
+﻿open Bitcore.Types
+open Bitcore.Image
+open Bitcore.Operators
 
 // 1-channel functions for making sure the channel mapping is correct
 let inline private average a b = (a + b) / 2.0

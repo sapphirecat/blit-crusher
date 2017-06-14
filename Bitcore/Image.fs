@@ -1,11 +1,11 @@
 ﻿// C# image interop.
 // See: loadFile, newImageFrom, foreachPixel.
 
-module BlitCrusher.Image
+module Bitcore.Image
 
 open System.Drawing
 open System.Drawing.Imaging
-open BlitCrusher.Types
+open Bitcore.Types
 
 
 let getData lockmode source =

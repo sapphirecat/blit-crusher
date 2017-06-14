@@ -1,4 +1,4 @@
-﻿module BlitCrusher.Types
+﻿module Bitcore.Types
 
 open System.Drawing
 

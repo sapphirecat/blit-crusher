@@ -1,6 +1,6 @@
-﻿module BlitCrusher.Operators
+﻿module Bitcore.Operators
 
-open BlitCrusher.Types
+open Bitcore.Types
 
 
 let levels nLevels v =
