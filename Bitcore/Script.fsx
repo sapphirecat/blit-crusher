@@ -35,7 +35,7 @@ let RGBbytes (r,g,b) =
 let traceYUV r g b =
     let rgb_in = RGBbytes (r,g,b) |> printRGB "in"
     let yuv = toYUV rgb_in |> printYUV "in"
-    let yuv' = yuv.apply3 (bits 5) (bits 3) (bits 3) |> printYUV "out"
+    let yuv' = yuv.apply3 (bits 3) (bits 3) (bits 2) |> printYUV "out"
     fromYUV yuv' |> printRGB "out" |> ignore
 
 
