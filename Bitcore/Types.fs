@@ -66,6 +66,7 @@ type ChannelMod = private {value:float; modulus:float} with
         member self.apply f = transform f self
 
 
+let private createStd = Channel1.Create
 let private createAlpha = Channel1.Create
 
 let private createY = Channel1.Create
@@ -109,9 +110,9 @@ type PxRGB = private {R: Channel; G: Channel; B: Channel; A: Channel} with
          R = Channel1 (asFloat a.[pos+2]);
          A = Channel1 (asFloat a.[pos+3]) }
 let ARGB alpha (r, g, b) =
-    {R = Channel1 r; G = Channel1 g; B = Channel1 b; A = createAlpha alpha}
+    {R = createStd r; G = createStd g; B = createStd b; A = createAlpha alpha}
 let RGB (r, g, b) =
-    {R = Channel1 r; G = Channel1 g; B = Channel1 b; A = Opaque}
+    {R = createStd r; G = createStd g; B = createStd b; A = Opaque}
 
 type PxYUV = private {Y: Channel; U: Channel; V: Channel; A: Channel} with
     member self.y = self.Y.normalize()
