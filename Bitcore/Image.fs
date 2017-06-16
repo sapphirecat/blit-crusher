@@ -72,11 +72,13 @@ let foreachPixel (operator:PxRGB -> PxRGB) source =
     let dest = newImageFrom source
     let pixels, meta = getPixels source
     let pixels' = Array.zeroCreate pixels.Length
+
+    let fn slot =
+        let out = PxRGB.fromByteSlice pixels slot |> operator
+        out.setByteSlice pixels' slot
+
     try
-        let bpp = 4
-        for slot in 0 .. bpp .. pixels.Length-1 do
-            let out = PxRGB.fromByteSlice pixels slot |> operator
-            out.setByteSlice pixels' slot
+        Array.Parallel.iter fn [| 0 .. 4 .. pixels.Length-1 |]
         putPixels dest pixels'
     finally
         freeData source meta
