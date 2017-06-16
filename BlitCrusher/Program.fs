@@ -2,15 +2,6 @@
 open Bitcore.Image
 open Bitcore.Operators
 
-// 1-channel functions for making sure the channel mapping is correct
-let inline private average a b = (a + b) / 2.0
-let redder (p:PxRGB)  = ARGB p.a (average p.r 1.0, p.g, p.b)
-let greener (p:PxRGB) = ARGB p.a (p.r, average p.g 1.0, p.b)
-let bluer (p:PxRGB)   = ARGB p.a (p.r, p.g, average p.b 1.0)
-let transer (p:PxRGB) =
-    let a = average p.a 0.2
-    ARGB a (p.r, p.g, p.b)
-   
 // basic bit-crushing primitives
 let bit1 = bits 1
 let bit2 = bits 2
@@ -73,10 +64,6 @@ let tagname (basename:string) tag =
 
 let transformations = 
     dict [|
-        "red", redder;
-        "grn", greener;
-        "blu", bluer;
-        "lfa", transer;
         "hsv422_12", hsv422_12;
         "hsv422_15", hsv422_15;
         "hsv633", hsv633;
