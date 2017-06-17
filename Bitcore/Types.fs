@@ -75,7 +75,10 @@ let private createV = ChannelAxis.Create 0.615
 let private createI = ChannelAxis.Create 0.5957
 let private createQ = ChannelAxis.Create 0.5226
 
-let private createHue = ChannelMod.Create 360.0
+// Hue on 0.0..6.0 shows up a lot in the calculations. Instead of *60 and /60
+// going to/from the space, let's just store it as 0.0..6.0.  Outside code
+// only sees it normalized anyway.
+let private createHue = ChannelMod.Create 6.0
 let private createSat = Channel1.Create
 let private createVal = Channel1.Create
 
@@ -164,7 +167,7 @@ let Gray y =
 
 
 type PxHSV = private {H: Channel; S: Channel; V: Channel; A: Channel} with
-    member self.h6 = self.H.raw() / 60.0
+    member self.h6 = self.H.raw()
     member self.h = self.H.normalize()
     member self.s = self.S.normalize()
     member self.v = self.V.normalize()

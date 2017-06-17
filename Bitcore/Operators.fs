@@ -88,7 +88,7 @@ let toHSV (px:PxRGB) =
             else 4.0 + (r - g)
     // safely calculate saturation
     let s = if maxC > 0.0 then delta/maxC else 0.0
-    AHSV px.a (h * 60.0, s, maxC)
+    AHSV px.a (h, s, maxC)
 let fromHSV (px:PxHSV) =
     let h = px.h6
     let s = px.s
