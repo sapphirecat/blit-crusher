@@ -10,6 +10,23 @@ let private bits_ depth = 2.0 ** (float depth) |> int
 let bits depth = bits_ depth |> levels
 let nearbits depth = bits_ depth - 1 |> levels
 
+// basic bit-crushing primitives
+let bit1 = bits 1
+let bit2 = bits 2
+let bit3 = bits 3
+let bit4 = bits 4
+let bit5 = bits 5
+let bit6 = bits 6
+let bit7 = bits 7
+let bit8 = bits 8
+let near2 = nearbits 2
+let near3 = nearbits 3
+let near4 = nearbits 4
+let near5 = nearbits 5
+let near6 = nearbits 6
+let near7 = nearbits 7
+let near8 = nearbits 8
+
 
 // If we only multiply [3x3] by [3x1] and the [3x1] is always based on some channels,
 // then let's hardcode that.  Stop creating a float[] to create a float[3,1] to send

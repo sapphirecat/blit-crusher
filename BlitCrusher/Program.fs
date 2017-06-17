@@ -2,23 +2,6 @@
 open Bitcore.Image
 open Bitcore.Operators
 
-// basic bit-crushing primitives
-let bit1 = bits 1
-let bit2 = bits 2
-let bit3 = bits 3
-let bit4 = bits 4
-let bit5 = bits 5
-let bit6 = bits 6
-let bit7 = bits 7
-let bit8 = bits 8
-let near2 = nearbits 2
-let near3 = nearbits 3
-let near4 = nearbits 4
-let near5 = nearbits 5
-let near6 = nearbits 6
-let near7 = nearbits 7
-let near8 = nearbits 8
-
 // RGB bit-crushing transformation functions
 let rgba5551 = asRGBA bit5 bit5 bit5 bit1
 let rgba4444 = asRGBA bit4 bit4 bit4 bit4
