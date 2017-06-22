@@ -11,7 +11,10 @@ type Image = {
 // math utilities (roundHalfUp also used by Operators.levels)
 let inline roundHalfUp (value:float) =
     System.Math.Round(value, System.MidpointRounding.AwayFromZero)
-let private saturate lo hi x :float =
+let inline private saturate lo hi x :float =
+    // using min/max: +3% overall run time.
+    // using pattern match (nop branch first): +9%.
+    // since this is called for every channel, let's keep it fast.
     if x < lo then lo
     elif x > hi then hi
     else x
