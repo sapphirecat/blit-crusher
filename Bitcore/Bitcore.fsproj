@@ -54,6 +54,7 @@
     <Compile Include="Types.fs" />
     <Compile Include="Image.fs" />
     <Compile Include="Operators.fs" />
+    <Compile Include="Interop.fs" />
     <None Include="Script.fsx" />
     <Content Include="packages.config" />
   </ItemGroup>

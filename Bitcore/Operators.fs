@@ -11,6 +11,7 @@ let bits depth = bits_ depth |> levels
 let nearbits depth = bits_ depth - 1 |> levels
 
 // basic bit-crushing primitives
+// allows writing cleaner `asYUV bit3 ...` instead of `asYUV (bits 3) ...`
 let bit1 = bits 1
 let bit2 = bits 2
 let bit3 = bits 3
@@ -27,6 +28,11 @@ let near6 = nearbits 6
 let near7 = nearbits 7
 let near8 = nearbits 8
 
+// min/center/max values (for I/Q or U/V, center = no color)
+let set0 (i:float) = 0.0
+let setCenter (i:float) = 0.5
+let set1 (i:float) = 1.0
+
 
 // If we only multiply [3x3] by [3x1] and the [3x1] is always based on some channels,
 // then let's hardcode that.  Stop creating a float[] to create a float[3,1] to send
@@ -40,17 +46,6 @@ let linearMult co (px:MatrixPixel) =
           co.[6]*a + co.[7]*b + co.[8]*c)
 
 
-let private rgb2yiq =
-    [| 0.299;  0.587;  0.114;
-       0.596; -0.275; -0.321;
-       0.212; -0.523;  0.311 |]
-let private yiq2rgb =
-    [| 1.0;  0.956;  0.621;
-       1.0; -0.272; -0.647;
-       1.0; -1.105;  1.702 |]
-let toYIQ (px:PxRGB) = linearMult rgb2yiq px |> AYIQ px.a
-let fromYIQ (px:PxYIQ) = linearMult yiq2rgb px |> ARGB px.a
-
 let private rgb2yuv =
     [| 0.299;    0.587;    0.114;
       -0.14713; -0.28886;  0.436;
@@ -62,13 +57,17 @@ let private yuv2rgb =
 let toYUV (px:PxRGB) = linearMult rgb2yuv px |> AYUV px.a
 let fromYUV (px:PxYUV) = linearMult yuv2rgb px |> ARGB px.a
 
-let toY (px:PxRGB) =
-    let m = rgb2yiq
-    let y = m.[0]*px.r + m.[1]*px.g + m.[2]*px.b
-    AGray px.a y
-let fromY (px:PxGray) =
-    let v = px.y
-    ARGB px.a (v,v,v)
+
+let private rgb2yiq =
+    [| 0.299;  0.587;  0.114;
+       0.596; -0.275; -0.321;
+       0.212; -0.523;  0.311 |]
+let private yiq2rgb =
+    [| 1.0;  0.956;  0.621;
+       1.0; -0.272; -0.647;
+       1.0; -1.105;  1.702 |]
+let toYIQ (px:PxRGB) = linearMult rgb2yiq px |> AYIQ px.a
+let fromYIQ (px:PxYIQ) = linearMult yiq2rgb px |> ARGB px.a
 
 
 let toHSV (px:PxRGB) =
@@ -111,26 +110,55 @@ let fromHSV (px:PxHSV) =
         else v,p,q
     ARGB px.a rgbTuple
 
+let toY (px:PxRGB) =
+    let m = rgb2yiq
+    let y = m.[0]*px.r + m.[1]*px.g + m.[2]*px.b
+    AGray px.a y
+let fromY (px:PxGray) =
+    let v = px.y
+    ARGB px.a (v,v,v)
 
-let asRGBA redfn greenfn bluefn alphafn (px:PxRGB) =
+
+let inline asARGB alphafn redfn greenfn bluefn (px:PxRGB) =
     ARGB (alphafn px.a) (redfn px.r, greenfn px.g, bluefn px.b)
-let asRGB redfn greenfn bluefn (px:PxRGB) =
-    RGB (redfn px.r, greenfn px.g, bluefn px.b)
+let inline asRGB redfn greenfn bluefn (px:PxRGB) =
+    ARGB px.a (redfn px.r, greenfn px.g, bluefn px.b)
 
-let asHSVA huefn satfn valfn alphafn px =
-    (toHSV px).apply4 alphafn huefn satfn valfn |> fromHSV
-let asHSV huefn satfn valfn px =
-    (toHSV px).apply3 huefn satfn valfn |> fromHSV
+let inline asAYUV alphafn yfn ufn vfn px =
+    (toYUV px).applyA yfn ufn vfn alphafn |> fromYUV
+let inline asYUV yfn ufn vfn px =
+    (toYUV px).apply yfn ufn vfn |> fromYUV
 
-let asYIQA yfn ifn qfn alphafn px =
-    (toYIQ px).apply4 alphafn yfn ifn qfn |> fromYIQ
-let asYIQ yfn ifn qfn px =
-    (toYIQ px).apply3 yfn ifn qfn |> fromYIQ
+let inline asAYIQ alphafn yfn ifn qfn px =
+    (toYIQ px).applyA yfn ifn qfn alphafn |> fromYIQ
+let inline asYIQ yfn ifn qfn px =
+    (toYIQ px).apply yfn ifn qfn |> fromYIQ
 
-let asYUVA yfn ufn vfn alphafn px =
-    (toYUV px).apply4 alphafn yfn ufn vfn |> fromYUV
-let asYUV yfn ufn vfn px =
-    (toYUV px).apply3 yfn ufn vfn |> fromYUV
+let inline asAHSV alphafn huefn satfn valfn px =
+    (toHSV px).applyA huefn satfn valfn alphafn |> fromHSV
+let inline asHSV huefn satfn valfn px =
+    (toHSV px).apply huefn satfn valfn |> fromHSV
 
-let asY fn (px:PxRGB) =
-    (toY px).apply1 fn |> fromY
+let inline asY fn px =
+    (toY px).apply fn |> fromY
+
+let inline asAlpha fn (px:PxRGB) =
+    ARGB (fn px.a) (px.r, px.g, px.b)
+
+
+// allow access by name to A123 channel functions (alpha, channel1/2/3)
+let inline private dropA f fnA fn1 fn2 fn3 = f fn1 fn2 fn3
+let inline private dropA23 f fnA fn1 fn2 fn3 px = f fn1 px
+let inline private drop123 f fnA fn1 fn2 fn3 px = f fnA px
+let spaces =
+    [|  "rgb",  dropA asRGB;
+        "rgba", asARGB;
+        "yuv",  dropA asYUV;
+        "yuva", asAYUV;
+        "yiq",  dropA asYIQ;
+        "yiqa", asAYIQ;
+        "hsv",  dropA asHSV;
+        "hsva", asAHSV;
+        "gray", dropA23 asY;
+        "alpha", drop123 asAlpha;
+    |] |> dict

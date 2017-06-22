@@ -2,10 +2,19 @@
 open Bitcore.Image
 open Bitcore.Operators
 
+type CliData = {
+    transforms: string[];
+    files: string[]
+}
+type CliResult =
+    | CliParse of CliData
+    | CliError of string
+
+
 // RGB bit-crushing transformation functions
-let rgba5551 = asRGBA bit5 bit5 bit5 bit1
-let rgba4444 = asRGBA bit4 bit4 bit4 bit4
-let rgba2222 = asRGBA bit2 bit2 bit2 bit2
+let rgba5551 = asARGB bit1 bit5 bit5 bit5
+let rgba4444 = asARGB bit4 bit4 bit4 bit4
+let rgba2222 = asARGB bit2 bit2 bit2 bit2
 let rgb565   = asRGB bit5 bit6 bit5
 let rgb332   = asRGB bit3 bit3 bit2
 
@@ -34,7 +43,7 @@ let y2 = asY bit2
 let hsv422_12 = asHSV  (levels 12) bit2 bit2
 let hsv422_15 = asHSV  (levels 15) bit2 bit2
 let hsv633    = asHSV  (levels 60) bit3 bit3
-let hsva5443  = asHSVA (levels 30) bit4 bit4 bit3
+let hsva5443  = asAHSV bit3 (levels 30) bit4 bit4
 
 // take an input filename and add a tag to it before the last dot
 // e.g. `tagname input "red"` for use with an operator that makes it red
@@ -103,7 +112,7 @@ let reportCliInline input (out:Result<Image,exn>) =
         match img.Filename with
         | Some name -> printfn "%s -> %s" input name |> setCode 0
         | None -> printfn "UNSAVED %s" input |> setCode 1
-    | Error e -> printfn "ERROR %s: %s" input e.Message |> setCode 2
+    | Error e -> printfn "ERROR %s: %A" input e |> setCode 2
 
 let runCli r =
     Array.collect (fun f -> fileDoAll reportCliInline f r.transforms) r.files

@@ -36,6 +36,9 @@ let newImageFrom source =
     let image = source.Image
     _newImage image.Width image.Height None
 
+let newImageFromBitmap bitmap =
+    {Image = bitmap; Filename = None}
+
 
 let saveImage image =
     match image.Filename with

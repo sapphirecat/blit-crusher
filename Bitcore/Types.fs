@@ -2,6 +2,7 @@
 
 open System.Drawing
 
+// Image types
 type Image = {
     Image: Bitmap;
     Filename: string option }
@@ -14,7 +15,12 @@ let private saturate lo hi x :float =
     if x < lo then lo
     elif x > hi then hi
     else x
-let private fmod x m =
+let inline private fmod x m =
+    match x with
+    | x when x <  0.0 -> x + (m * (-x/m |> ceil))
+    | x when x >= m   -> x - (m * (x/m |> floor))
+    | _               -> x
+let private fmod_old x m =
     let rec step v =
         if v < 0.0 then v + m |> step
         elif v >= m then v - m |> step
@@ -22,16 +28,17 @@ let private fmod x m =
     step x
 
 
-type MatrixPixel =
-    abstract member asTuple3: unit -> float*float*float
+// Components of an individual pixel
 type Channel =
     abstract member raw: unit -> float
     abstract member normalize: unit -> float
     abstract member denormalize: float -> Channel
     abstract member apply: (float -> float) -> Channel
+type MatrixPixel =
+    abstract member asTuple3: unit -> float*float*float
+
 
 let inline private transform f (c:Channel) = c.normalize() |> f |> c.denormalize
-
 
 type Channel1 = private Channel1 of float with
     static member Create value = saturate 0.0 1.0 value |> Channel1
@@ -66,6 +73,87 @@ type ChannelMod = private {value:float; modulus:float} with
         member self.apply f = transform f self
 
 
+// Pixel types
+type PxRGB = private {R: Channel; G: Channel; B: Channel; A: Channel} with
+    member self.r = self.R.normalize()
+    member self.g = self.G.normalize()
+    member self.b = self.B.normalize()
+    member self.a = self.A.normalize()
+    member self.applyA redfn greenfn bluefn alphafn =
+        {R = self.R.apply redfn; G = self.G.apply greenfn; B = self.B.apply bluefn;
+        A = self.A.apply alphafn}
+    member self.apply redfn greenfn bluefn =
+        // optimization: copy alpha, to skip .raw/id/saturate/Create calls
+        {R = self.R.apply redfn; G = self.G.apply greenfn; B = self.B.apply bluefn;
+        A = self.A}
+    interface MatrixPixel with
+        member self.asTuple3 () = (self.R.raw(), self.G.raw(), self.B.raw())
+
+    // special extra features for Image to read/write RGBA pixels
+    member self.setByteSlice (a:byte[]) pos =
+        let inline asByte v = v*255.0 |> roundHalfUp |> byte
+        a.[pos]   <- self.B.raw() |> asByte
+        a.[pos+1] <- self.G.raw() |> asByte
+        a.[pos+2] <- self.R.raw() |> asByte
+        a.[pos+3] <- self.A.raw() |> asByte
+    static member fromByteSlice (a:byte[]) pos =
+        let inline asFloat x = float x / 255.0
+        {B = Channel1 (asFloat a.[pos]);
+         G = Channel1 (asFloat a.[pos+1]);
+         R = Channel1 (asFloat a.[pos+2]);
+         A = Channel1 (asFloat a.[pos+3]) }
+
+type PxYUV = private {Y: Channel; U: Channel; V: Channel; A: Channel} with
+    member self.y = self.Y.normalize()
+    member self.u = self.U.normalize()
+    member self.v = self.V.normalize()
+    member self.a = self.A.normalize()
+    member self.applyA yfn ufn vfn alphafn =
+        {Y = self.Y.apply yfn; U = self.U.apply ufn; V = self.V.apply vfn;
+        A = self.A.apply alphafn}
+    member self.apply yfn ufn vfn =
+        {Y = self.Y.apply yfn; U = self.U.apply ufn; V = self.V.apply vfn;
+        A = self.A}
+    interface MatrixPixel with
+        member self.asTuple3 () = (self.Y.raw(), self.U.raw(), self.V.raw())
+
+type PxYIQ = private {Y: Channel; I: Channel; Q: Channel; A: Channel} with
+    member self.y = self.Y.normalize()
+    member self.i = self.I.normalize()
+    member self.q = self.Q.normalize()
+    member self.a = self.A.normalize()
+    member self.applyA yfn ifn qfn alphafn =
+        {Y = self.Y.apply yfn; I = self.I.apply ifn; Q = self.Q.apply qfn;
+         A = self.A.apply alphafn}
+    member self.apply yfn ifn qfn =
+        {Y = self.Y.apply yfn; I = self.I.apply ifn; Q = self.Q.apply qfn;
+         A = self.A}
+    interface MatrixPixel with
+        member self.asTuple3 () = (self.Y.raw(), self.I.raw(), self.Q.raw())
+
+type PxHSV = private {H: Channel; S: Channel; V: Channel; A: Channel} with
+    member self.h6 = self.H.raw()
+    member self.h = self.H.normalize()
+    member self.s = self.S.normalize()
+    member self.v = self.V.normalize()
+    member self.a = self.A.normalize()
+    member self.applyA huefn satfn valfn alphafn =
+        {H = self.H.apply huefn; S = self.S.apply satfn; V = self.V.apply valfn;
+         A = self.A.apply alphafn}
+    member self.apply huefn satfn valfn =
+        {H = self.H.apply huefn; S = self.S.apply satfn; V = self.V.apply valfn;
+         A = self.A}
+
+type PxGray = private {Y: Channel; A: Channel} with
+    member self.y = self.Y.normalize()
+    member self.a = self.A.normalize()
+    member self.applyA yfn alphafn =
+        {Y = self.Y.apply yfn; A = self.A.apply alphafn}
+    member self.apply yfn =
+        {Y = self.Y.apply yfn; A = self.A}
+
+
+// aliases for the pixel constructors
 let private createStd = Channel1.Create
 let private createAlpha = Channel1.Create
 
@@ -84,110 +172,28 @@ let private createVal = Channel1.Create
 
 let private Opaque = createAlpha 1.0
 
-type PxRGB = private {R: Channel; G: Channel; B: Channel; A: Channel} with
-    member self.r = self.R.normalize()
-    member self.g = self.G.normalize()
-    member self.b = self.B.normalize()
-    member self.a = self.A.normalize()
-    member self.apply4 alphafn redfn greenfn bluefn =
-        {R = self.R.apply redfn; G = self.G.apply greenfn; B = self.B.apply bluefn;
-         A = self.A.apply alphafn}
-    member self.apply3 redfn greenfn bluefn =
-        // optimization: copy alpha, to skip .raw/id/saturate/Create calls
-        {R = self.R.apply redfn; G = self.G.apply greenfn; B = self.B.apply bluefn;
-         A = self.A}
-    interface MatrixPixel with
-        member self.asTuple3 () = (self.R.raw(), self.G.raw(), self.B.raw())
-
-    // special extra features for Image to read/write RGBA pixels
-    member self.setByteSlice (a:byte[]) pos =
-        let inline asByte v = v*255.0 |> roundHalfUp |> byte
-        a.[pos]   <- self.B.raw() |> asByte
-        a.[pos+1] <- self.G.raw() |> asByte
-        a.[pos+2] <- self.R.raw() |> asByte
-        a.[pos+3] <- self.A.raw() |> asByte
-    static member fromByteSlice (a:byte[]) pos =
-        let inline asFloat x = float x / 255.0
-        {B = Channel1 (asFloat a.[pos]);
-         G = Channel1 (asFloat a.[pos+1]);
-         R = Channel1 (asFloat a.[pos+2]);
-         A = Channel1 (asFloat a.[pos+3]) }
+// Pixel constructors
 let ARGB alpha (r, g, b) =
     {R = createStd r; G = createStd g; B = createStd b; A = createAlpha alpha}
 let RGB (r, g, b) =
     {R = createStd r; G = createStd g; B = createStd b; A = Opaque}
 
-type PxYUV = private {Y: Channel; U: Channel; V: Channel; A: Channel} with
-    member self.y = self.Y.normalize()
-    member self.u = self.U.normalize()
-    member self.v = self.V.normalize()
-    member self.a = self.A.normalize()
-    interface MatrixPixel with
-        member self.asTuple3 () = (self.Y.raw(), self.U.raw(), self.V.raw())
-    member self.apply4 alphafn yfn ufn vfn =
-        {Y = self.Y.apply yfn; U = self.U.apply ufn; V = self.V.apply vfn;
-         A = self.A.apply alphafn}
-    member self.apply3 yfn ufn vfn =
-        {Y = self.Y.apply yfn; U = self.U.apply ufn; V = self.V.apply vfn;
-         A = self.A}
 let AYUV alpha (y, u, v) =
     {Y = createY y; U = createU u; V = createV v; A = createAlpha alpha}
 let YUV (y, u, v) =
     {Y = createY y; U = createU u; V = createV v; A = Opaque}
 
-type PxYIQ = private {Y: Channel; I: Channel; Q: Channel; A: Channel} with
-    member self.y = self.Y.normalize()
-    member self.i = self.I.normalize()
-    member self.q = self.Q.normalize()
-    member self.a = self.A.normalize()
-    interface MatrixPixel with
-        member self.asTuple3 () = (self.Y.raw(), self.I.raw(), self.Q.raw())
-    member self.apply4 alphafn yfn ifn qfn =
-        {Y = self.Y.apply yfn; I = self.I.apply ifn; Q = self.Q.apply qfn;
-         A = self.A.apply alphafn}
-    member self.apply3 yfn ifn qfn =
-        {Y = self.Y.apply yfn; I = self.I.apply ifn; Q = self.Q.apply qfn;
-         A = self.A}
 let AYIQ alpha (y, i, q) =
     {Y = createY y; I = createI i; Q = createQ q; A = createAlpha alpha}
 let YIQ (y, i, q) =
     {Y = createY y; I = createI i; Q = createQ q; A = Opaque}
 
-type PxGray = private {Y: Channel; A: Channel} with
-    member self.y = self.Y.normalize()
-    member self.a = self.A.normalize()
-    member self.apply2 alphafn yfn =
-        {Y = self.Y.apply yfn; A = self.A.apply alphafn}
-    member self.apply1 yfn =
-        {Y = self.Y.apply yfn; A = self.A}
-let AGray alpha y =
-    {Y = createY y; A = createAlpha alpha}
-let Gray y =
-    {Y = createY y; A = Opaque}
-
-
-type PxHSV = private {H: Channel; S: Channel; V: Channel; A: Channel} with
-    member self.h6 = self.H.raw()
-    member self.h = self.H.normalize()
-    member self.s = self.S.normalize()
-    member self.v = self.V.normalize()
-    member self.a = self.A.normalize()
-    member self.apply4 alphafn huefn satfn valfn =
-        {H = self.H.apply huefn; S = self.S.apply satfn; V = self.V.apply valfn;
-         A = self.A.apply alphafn}
-    member self.apply3 huefn satfn valfn =
-        {H = self.H.apply huefn; S = self.S.apply satfn; V = self.V.apply valfn;
-         A = self.A}
 let AHSV alpha (h, s, v) =
     {H = createHue h; S = createSat s; V = createVal v; A = createAlpha alpha}
 let HSV (h, s, v) =
     {H = createHue h; S = createSat s; V = createVal v; A = Opaque}
 
-
-type CliData = {
-    transforms: string[];
-    files: string[]
-}
-type CliResult =
-    | CliParse of CliData
-    | CliError of string
+let AGray alpha y =
+    {Y = createY y; A = createAlpha alpha}
+let Gray y =
+    {Y = createY y; A = Opaque}
