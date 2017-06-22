@@ -20,12 +20,6 @@ let inline private fmod x m =
     | x when x <  0.0 -> x + (m * (-x/m |> ceil))
     | x when x >= m   -> x - (m * (x/m |> floor))
     | _               -> x
-let private fmod_old x m =
-    let rec step v =
-        if v < 0.0 then v + m |> step
-        elif v >= m then v - m |> step
-        else v
-    step x
 
 
 // Components of an individual pixel
