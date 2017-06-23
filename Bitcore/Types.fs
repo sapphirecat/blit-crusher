@@ -19,14 +19,12 @@ let inline private saturate lo hi x :float =
     elif x > hi then hi
     else x
 let inline private fmod x m =
-    match x with
-    | x when x <  0.0 -> x + (m * (-x/m |> ceil))
-    | x when x >= m   -> x - (m * (x/m |> floor))
-    | _               -> x
-
+    let v = x % m
+    if v < 0.0 then v + m
+    else v
 
 // Components of an individual pixel
-type Channel =
+type private Channel =
     abstract member raw: unit -> float
     abstract member normalize: unit -> float
     abstract member denormalize: float -> Channel
@@ -37,7 +35,7 @@ type MatrixPixel =
 
 let inline private transform f (c:Channel) = c.normalize() |> f |> c.denormalize
 
-type Channel1 = private Channel1 of float with
+type private Channel1 = Channel1 of float with
     static member Create value = saturate 0.0 1.0 value |> Channel1
     member private self.toChannel value = Channel1.Create value :> Channel
     interface Channel with
@@ -47,7 +45,7 @@ type Channel1 = private Channel1 of float with
         member self.apply f =
             match self with Channel1 value -> f value |> self.toChannel
 
-type ChannelAxis = private {value:float; limit:float} with
+type private ChannelAxis = {value:float; limit:float} with
     static member Create limit value =
         {value = saturate -limit limit value; limit = limit}
     interface Channel with
@@ -58,7 +56,7 @@ type ChannelAxis = private {value:float; limit:float} with
             ChannelAxis.Create self.limit v :> Channel
         member self.apply f = transform f self
 
-type ChannelMod = private {value:float; modulus:float} with
+type private ChannelMod = {value:float; modulus:float} with
     static member Create modulus value =
         {value = fmod value modulus; modulus = modulus}
     interface Channel with
@@ -151,21 +149,21 @@ type PxGray = private {Y: Channel; A: Channel} with
 
 
 // aliases for the pixel constructors
-let private createStd = Channel1.Create
-let private createAlpha = Channel1.Create
+let inline private createStd value = Channel1.Create value
+let inline private createAlpha value = Channel1.Create value
 
-let private createY = Channel1.Create
-let private createU = ChannelAxis.Create 0.436
-let private createV = ChannelAxis.Create 0.615
-let private createI = ChannelAxis.Create 0.5957
-let private createQ = ChannelAxis.Create 0.5226
+let inline private createY value = Channel1.Create value
+let inline private createU value = ChannelAxis.Create 0.436 value
+let inline private createV value = ChannelAxis.Create 0.615 value
+let inline private createI value = ChannelAxis.Create 0.5957 value
+let inline private createQ value = ChannelAxis.Create 0.5226 value
 
 // Hue on 0.0..6.0 shows up a lot in the calculations. Instead of *60 and /60
 // going to/from the space, let's just store it as 0.0..6.0.  Outside code
 // only sees it normalized anyway.
-let private createHue = ChannelMod.Create 6.0
-let private createSat = Channel1.Create
-let private createVal = Channel1.Create
+let inline private createHue value = ChannelMod.Create 6.0 value
+let inline private createSat value = Channel1.Create value
+let inline private createVal value = Channel1.Create value
 
 let private Opaque = createAlpha 1.0
 
