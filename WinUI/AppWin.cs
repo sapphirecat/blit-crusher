@@ -13,12 +13,39 @@ namespace WinUI
     public partial class AppWin : Form
     {
         private Image LoadedImage { get; set; }
-        private int[] LastValidLevels { get; set; }
+        private int[] CurrentLevels { get; set; } = null;
+        private string CurrentSpace { get; set; }
 
         public AppWin()
         {
             InitializeComponent();
+            ParseLevelsFromToolStrip();
+            SetColorspace("rgb");
             CloseFile();
+        }
+
+        private void SetColorspace (string space)
+        {
+            var items = colorSpaceButton.DropDownItems;
+            ToolStripItem item;
+            ToolStripMenuItem menu;
+            bool locked = false;
+            int i;
+
+            for (i = 0; i < items.Count; i++)
+            {
+                item = items[i];
+                if (item is ToolStripMenuItem)
+                {
+                    menu = item as ToolStripMenuItem;
+                    menu.Checked = locked ? false : (menu.Tag.ToString() == space);
+                    if (menu.Checked)
+                    {
+                        locked = true;
+                        CurrentSpace = space;
+                    }
+                }
+            }
         }
 
         private bool ParseLevelsFromText (ToolStripTextBox[] controls, out int[] levels)
@@ -45,18 +72,32 @@ namespace WinUI
             var controls = new ToolStripTextBox[] { levels1, levels2, levels3 };
             if (ParseLevelsFromText(controls, out int[] levels))
             {
-                LastValidLevels = levels;
+                CurrentLevels = levels;
             }
-            return LastValidLevels;
+            return CurrentLevels;
+        }
+
+        private Bitmap ApplyTransform (Image image, string colorspace, int[] levels)
+        {
+            if (! (image is Bitmap))
+            {
+                throw new ArgumentException("Image to transform should be a Bitmap", "image");
+            }
+            if (levels.Length != 3)
+            {
+                throw new ArgumentException($"Received {levels.Length} levels, expected 3", "levels");
+            }
+
+            return Bitcore.Interop.Apply3(image as Bitmap, colorspace,
+                    Bitcore.Interop.UseLevels(levels[0]),
+                    Bitcore.Interop.UseLevels(levels[1]),
+                    Bitcore.Interop.UseLevels(levels[2]));
         }
 
         private void UpdateDisplayImage()
         {
-            // TODO: pull transform from menus, don't hardcode RGB332
             // TODO: figure out how to make PictureBox track the parent control size
             var box = imagePreview;
-            int[] levels = ParseLevelsFromToolStrip();
-            string colorspace = "yiq";
 
             if (LoadedImage == null)
             {
@@ -69,12 +110,9 @@ namespace WinUI
             var thumb = Bitcore.Image.resizeBitmap(box.Width, box.Height, LoadedImage);
 
             // apply transformation
-            if (levels != null && thumb is Bitmap)
+            if (CurrentLevels != null && thumb is Bitmap)
             {
-                thumb = Bitcore.Interop.Apply3(thumb as Bitmap, colorspace,
-                    Bitcore.Interop.UseLevels(levels[0]),
-                    Bitcore.Interop.UseLevels(levels[1]),
-                    Bitcore.Interop.UseLevels(levels[2]));
+                thumb = ApplyTransform(thumb, CurrentSpace, CurrentLevels);
             }
 
             // set transformation results
@@ -84,7 +122,7 @@ namespace WinUI
         private void ShowFile(string name)
         {
             mainStatusLabel.Text = System.IO.Path.GetFileName(name);
-            LoadedImage = System.Drawing.Image.FromFile(name);
+            LoadedImage = Image.FromFile(name);
             UpdateDisplayImage();
         }
 
@@ -114,6 +152,7 @@ namespace WinUI
 
         private void RefreshEvent (object sender, EventArgs e)
         {
+            ParseLevelsFromToolStrip();
             UpdateDisplayImage();
         }
 
@@ -150,6 +189,13 @@ namespace WinUI
         private void levels3_Enter(object sender, EventArgs e)
         {
             levels3.SelectAll();
+        }
+
+        private void colorspaceMenuItem_Click(object sender, EventArgs e)
+        {
+            var item = sender as ToolStripMenuItem;
+            SetColorspace(item.Tag.ToString());
+            UpdateDisplayImage();
         }
     }
 }
