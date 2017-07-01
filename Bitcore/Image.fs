@@ -4,9 +4,12 @@
 module Bitcore.Image
 
 open System.Drawing
+open System.Drawing.Drawing2D
 open System.Drawing.Imaging
 open Bitcore.Types
 
+
+type private SysImage = System.Drawing.Image
 
 let getData lockmode source =
     let image = source.Image
@@ -67,6 +70,40 @@ let putPixels image (pixels:array<byte>) =
         image
     finally
         freeData image meta
+
+
+// nondestructive bitmap scaling
+// internal: scale to exact width/height
+let private scaleBitmapWH (width:int) (height:int) (image:SysImage) =
+    let imageOut = new Bitmap(width, height)
+
+    imageOut.SetResolution(image.HorizontalResolution, image.VerticalResolution)
+
+    use g = Graphics.FromImage(imageOut)
+    g.CompositingMode <- CompositingMode.SourceCopy
+    //g.CompositingQuality <- CompositingQuality.HighQuality
+    g.InterpolationMode <- InterpolationMode.HighQualityBicubic
+    g.SmoothingMode <- SmoothingMode.AntiAlias
+    //g.PixelOffsetMode <- PixelOffsetMode.HighQuality
+
+    g.DrawImage(image, 0, 0, width, height)
+    imageOut :> SysImage
+// internal: create a copy of a bitmap at the same width/height
+let private copyBitmap (image:SysImage) =
+    image.Clone() :?> SysImage
+// scale bitmap by some factor
+let scaleBitmap scale (image:SysImage) =
+    let width = float image.Width * scale |> int
+    let height = float image.Height * scale |> int
+    match width, height with
+    | (0, _) | (_, 0) -> copyBitmap image
+    | _ -> scaleBitmapWH width height image
+
+// scale a bitmap down so that it fits in a maxW-by-maxH area
+let resizeBitmap maxW maxH (bitmap:SysImage) =
+    let scale = min (float maxW / float bitmap.Width) (float maxH / float bitmap.Height)
+    if scale >= 1.0 then copyBitmap bitmap
+    else scaleBitmap scale bitmap
 
 
 // ideally, there'd be a generic "get mask" function and foreachPixel

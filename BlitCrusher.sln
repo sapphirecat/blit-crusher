@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BlitCrusher", "BlitCrusher\BlitCrusher.fsproj", "{2B820F81-FC6D-4847-A6C9-457ED69C565D}"
 EndProject
@@ -16,18 +16,19 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Debug|x64.ActiveCfg = Debug|x86
+		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Debug|x64.ActiveCfg = Debug|x64
 		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Release|Any CPU.ActiveCfg = Release|x86
-		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Release|x64.ActiveCfg = Release|x86
+		{2B820F81-FC6D-4847-A6C9-457ED69C565D}.Release|x64.ActiveCfg = Release|x64
 		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Debug|x64.Build.0 = Debug|Any CPU
+		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Debug|x64.ActiveCfg = Debug|x64
+		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Debug|x64.Build.0 = Debug|x64
 		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Release|Any CPU.Build.0 = Release|Any CPU
-		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Release|x64.ActiveCfg = Release|Any CPU
-		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Release|x64.Build.0 = Release|Any CPU
+		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Release|x64.ActiveCfg = Release|x64
+		{41F21B92-B706-48CE-89CF-9C3EC3A1D481}.Release|x64.Build.0 = Release|x64
 		{687B8112-CA6D-4A78-A3BB-5B24A225FA22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{687B8112-CA6D-4A78-A3BB-5B24A225FA22}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{687B8112-CA6D-4A78-A3BB-5B24A225FA22}.Debug|x64.ActiveCfg = Debug|x64

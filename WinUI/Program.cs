@@ -6,8 +6,6 @@ using System.Windows.Forms;
 
 namespace WinUI
 {
-    delegate double DoubleCrush(double v);
-
     static class Program
     {
         /// <summary>
