@@ -365,7 +365,7 @@
             // rGBToolStripMenuItem
             // 
             this.rGBToolStripMenuItem.Name = "rGBToolStripMenuItem";
-            this.rGBToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.rGBToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.rGBToolStripMenuItem.Tag = "rgb";
             this.rGBToolStripMenuItem.Text = "&RGB";
             this.rGBToolStripMenuItem.Click += new System.EventHandler(this.colorspaceMenuItem_Click);
@@ -373,7 +373,7 @@
             // yUVToolStripMenuItem
             // 
             this.yUVToolStripMenuItem.Name = "yUVToolStripMenuItem";
-            this.yUVToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.yUVToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.yUVToolStripMenuItem.Tag = "yuv";
             this.yUVToolStripMenuItem.Text = "Y&UV";
             this.yUVToolStripMenuItem.Click += new System.EventHandler(this.colorspaceMenuItem_Click);
@@ -381,7 +381,7 @@
             // yIQToolStripMenuItem
             // 
             this.yIQToolStripMenuItem.Name = "yIQToolStripMenuItem";
-            this.yIQToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.yIQToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.yIQToolStripMenuItem.Tag = "yiq";
             this.yIQToolStripMenuItem.Text = "Y&IQ";
             this.yIQToolStripMenuItem.Click += new System.EventHandler(this.colorspaceMenuItem_Click);
@@ -389,7 +389,7 @@
             // hSVToolStripMenuItem
             // 
             this.hSVToolStripMenuItem.Name = "hSVToolStripMenuItem";
-            this.hSVToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.hSVToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.hSVToolStripMenuItem.Tag = "hsv";
             this.hSVToolStripMenuItem.Text = "HS&V";
             this.hSVToolStripMenuItem.Click += new System.EventHandler(this.colorspaceMenuItem_Click);
@@ -397,7 +397,7 @@
             // ygrayscaleToolStripMenuItem
             // 
             this.ygrayscaleToolStripMenuItem.Name = "ygrayscaleToolStripMenuItem";
-            this.ygrayscaleToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.ygrayscaleToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.ygrayscaleToolStripMenuItem.Tag = "gray";
             this.ygrayscaleToolStripMenuItem.Text = "&Y (grayscale)";
             this.ygrayscaleToolStripMenuItem.Click += new System.EventHandler(this.colorspaceMenuItem_Click);
@@ -448,19 +448,19 @@
             // mainStatusLabel
             // 
             this.mainStatusLabel.Name = "mainStatusLabel";
-            this.mainStatusLabel.Size = new System.Drawing.Size(50, 17);
-            this.mainStatusLabel.Text = "Loading";
+            this.mainStatusLabel.Size = new System.Drawing.Size(75, 17);
+            this.mainStatusLabel.Text = "Starting Up...";
             // 
             // imagePreview
             // 
-            this.imagePreview.BackColor = System.Drawing.SystemColors.ControlDark;
             this.imagePreview.Dock = System.Windows.Forms.DockStyle.Fill;
             this.imagePreview.Location = new System.Drawing.Point(3, 52);
+            this.imagePreview.MinimumSize = new System.Drawing.Size(1, 1);
             this.imagePreview.Name = "imagePreview";
             this.imagePreview.Size = new System.Drawing.Size(378, 204);
+            this.imagePreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.imagePreview.TabIndex = 3;
             this.imagePreview.TabStop = false;
-            this.imagePreview.Resize += new System.EventHandler(this.RefreshEvent);
             // 
             // AppWin
             // 
