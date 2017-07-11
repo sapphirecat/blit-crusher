@@ -2,6 +2,9 @@
 
 Bit-crush images, potentially after colorspace conversion.
 
+Here’s where we were at, last time I updated the README:
+![GUI screenshot](demos/nice-rgb222-ui.png "Nice Splatfest poster from Splatoon, at RGB-222")
+
 # Meaning…
 
 Have you ever wondered what truecolor RGB332 would look like?  Maybe an HSV
