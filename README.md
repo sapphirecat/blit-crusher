@@ -2,6 +2,17 @@
 
 Bit-crush images, potentially after colorspace conversion.
 
+# Archive Notice
+
+This project is archived.  I am not using F#, nor Windows, and I don't expect
+to come back to either of them (barring major changes in respecting consent
+regarding AI.)
+
+There is a slightly newer Go version (CLI only) at
+[/sapphirecat/bitcrush](https://github.com/sapphirecat/bitcrush).
+
+# Screenshot
+
 Here’s where we were at, last time I updated the README:  
 ![GUI screenshot](demos/nice-rgb222-ui.png "Nice Splatfest poster from Splatoon, at RGB-222")
 
